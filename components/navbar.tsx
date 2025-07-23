@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Users } from "lucide-react"
+import { Home, LogOut, User, Users } from "lucide-react"
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
@@ -20,9 +20,15 @@ export const Navbar = () => {
 
           {/* Navegación Desktop */}
           <div className="hidden md:flex items-center gap-3">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
+                <Home className="w-4 h-4 mr-2" />
+                Inicio
+              </Button>
+            </Link>
             <Link href="/profile">
               <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                <Users className="w-4 h-4 mr-2" />
+                <User className="w-4 h-4 mr-2" />
                 Perfil
               </Button>
             </Link>
@@ -42,9 +48,14 @@ export const Navbar = () => {
 
           {/* Navegación Mobile */}
           <div className="flex md:hidden items-center gap-1">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white p-2">
+                <Home className="w-5 h-5" />
+              </Button>
+            </Link>
             <Link href="/profile">
               <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white p-2">
-                <Users className="w-5 h-5" />
+                <User className="w-5 h-5" />
               </Button>
             </Link>
             <Link href="/friends">

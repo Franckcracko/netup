@@ -13,17 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { CommentsModal } from "./comments-modal"
 import { useState } from "react"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -156,6 +145,25 @@ export const Post = ({
           </form>
         </DialogContent>
       </Dialog>
+    </Card>
+  )
+}
+
+export const PostSkeleton = () => {
+  return (
+    <Card className="bg-[#2d2d2d] border-gray-700 animate-pulse">
+      <CardContent className="p-4">
+        <div className="flex gap-3">
+          <Avatar className="w-10 h-10 bg-gray-600">
+            <AvatarFallback className="bg-purple-600 text-white" />
+          </Avatar>
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-600 rounded w-3/4"></div>
+            <div className="h-3 bg-gray-600 rounded w-1/2"></div>
+            <div className="h-6 bg-gray-600 rounded w-full"></div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   )
 }

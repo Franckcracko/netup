@@ -11,6 +11,8 @@ export const usePost = () => {
   const [searchQuery, setSearchQuery] = useState("")
 
   const [isLoading, setisLoading] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(true)
+
 
   const handleCreatePost = async ({ user, content }: {
     user: {
@@ -94,6 +96,8 @@ export const usePost = () => {
         setPosts(postsData)
       } catch (error) {
         console.error("Error fetching posts:", error)
+      } finally {
+        setIsLoadingData(false)
       }
     }
 
@@ -107,6 +111,7 @@ export const usePost = () => {
     handleDeletePost,
     searchQuery,
     posts,
-    isLoading
+    isLoading,
+    isLoadingData
   }
 }
