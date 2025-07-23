@@ -2,6 +2,7 @@
 
 import { PostReactionType, getPost } from "@/data/post";
 import { prisma } from "@/lib/db";
+import { currentUser } from "@clerk/nextjs/server";
 
 /**
  * Create a new user
@@ -103,6 +104,43 @@ export const createPost = async (formData: FormData) => {
   } catch (error) {
     console.error("Error creating post:", error);
     throw new Error("Failed to create post");
+  }
+}
+
+export const deletePost = async (postId: string): Promise<void> => {
+  if (!postId) {
+    throw new Error("Post ID is required");
+  }
+  
+  try {
+    const userClerk = await currentUser()
+    
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { author: true }
+    })
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    // Check if the user is the author of the post
+    if (post.author.email !== userClerk.emailAddresses[0]?.emailAddress) {
+      throw new Error("You are not authorized to delete this post");
+    }
+
+    // Finally, delete the post itself
+    await prisma.post.update({
+      where: { id: postId },
+      data: { deleted: true },
+    });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw new Error("Failed to delete post");
   }
 }
 
@@ -215,5 +253,40 @@ export const deleteReactPost = async ({
   } catch (error) {
     console.error("Error deleting reaction:", error);
     throw new Error("Failed to delete reaction");
+  }
+}
+
+export const createComment = async ({
+  postId,
+  userId,
+  content,
+}: {
+  postId: string;
+  userId: string;
+  content: string;
+}): Promise<{
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  createdAt: Date;
+}> => {
+  if (!postId || !userId || !content) {
+    throw new Error("Post ID, User ID, and content are required");
+  }
+
+  try {
+    const comment = await prisma.comment.create({
+      data: {
+        postId,
+        userId,
+        content,
+      },
+    });
+
+    return comment;
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    throw new Error("Failed to create comment");
   }
 }

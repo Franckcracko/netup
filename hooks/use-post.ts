@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getPosts } from "@/data/post"
 import { createPost, reactToPost } from "@/app/actions";
 import { Post } from "@/types/post";
+import { deletePost } from "@/app/actions"
 
 export const usePost = () => {
   const [posts, setPosts] = useState<Post[]>([])
@@ -60,10 +61,6 @@ export const usePost = () => {
       }
       post.reacted = { id: '', type: reaction }; // Placeholder ID, will be updated by the server
 
-      if (!post.reactions[reaction]) {
-        post.reactions[reaction] = { count: 0 };
-      }
-
       post.reactions[reaction].count += 1;
     }
 
@@ -78,6 +75,16 @@ export const usePost = () => {
 
   const handleChangeQuery = (query: string) => {
     setSearchQuery(query)
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await deletePost(postId)
+
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
+    } catch (error) {
+      console.error("Error deleting post:", error)
+    }
   }
 
   useEffect(() => {
@@ -97,6 +104,7 @@ export const usePost = () => {
     handleChangeQuery,
     handleCreatePost,
     handleReaction,
+    handleDeletePost,
     searchQuery,
     posts,
     isLoading

@@ -41,6 +41,8 @@ model Post {
   content     String
   image       String?       // optional
   createdAt   DateTime      @default(now())
+  updatedAt   DateTime?      @updatedAt
+  deleted      Boolean       @default(false)
   
   author      User          @relation("UserPosts", fields: [userId], references: [id])
   comments    Comment[]

@@ -3,7 +3,7 @@ import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Button } from "./ui/button"
 import { formatTimeAgo } from "@/utils/format-time"
-import { MessageCircle, MoreHorizontal, Share2 } from "lucide-react"
+import { MoreHorizontal, Share2 } from "lucide-react"
 import { reactions } from "@/config/constants"
 import { Badge } from "./ui/badge"
 import {
@@ -13,16 +13,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { CommentsModal } from "./comments-modal"
+import { useState } from "react"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 
 export const Post = ({
   isAuthor,
   post,
   onReaction,
+  onDelete
 }: {
   isAuthor: boolean;
   post: PostI;
   onReaction: (reaction: "like" | "love" | "haha" | "wow" | "sad" | "angry") => Promise<void>;
+  onDelete: () => Promise<void>;
 }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
   return (
     <Card className="bg-[#2d2d2d] border-gray-700">
       <CardContent className="p-4">
@@ -50,13 +68,13 @@ export const Post = ({
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-32">
+                <DropdownMenuContent align="center" className="w-32 bg-[#2d2d2d] border-[#212121]">
                   {
                     isAuthor ? (
                       <>
                         <DropdownMenuItem>Editar</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Borrar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowDeleteModal(true)}>Borrar</DropdownMenuItem>
                       </>
                     ) : (
                       <>
@@ -65,6 +83,7 @@ export const Post = ({
                       </>
                     )
                   }
+
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -101,36 +120,9 @@ export const Post = ({
 
             <div className="flex items-center justify-between pt-2 border-t border-gray-600">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-400">
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  {/* {post.} */}
-                </Button>
-
-                <div className="relative">
-                  {/* <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-400 hover:text-yellow-400"
-                  >
-                    <SmilePlus />
-                  </Button> */}
-
-                  {/* {showReactions && (
-                    <div className="absolute bottom-full left-0 mb-2 bg-[#1a1a1a] border border-gray-600 rounded-lg p-2 flex gap-1">
-                      {reactions.map(({ name, emoji }) => (
-                        <Button
-                          key={`button-${name}-${post.id}`}
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => await onReaction(name)}
-                          className="text-lg hover:bg-gray-700"
-                        >
-                          {emoji}
-                        </Button>
-                      ))}
-                    </div>
-                  )} */}
-                </div>
+                <CommentsModal
+                  post={post}
+                />
               </div>
 
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-400">
@@ -140,6 +132,30 @@ export const Post = ({
           </div>
         </div>
       </CardContent>
+      <Dialog open={showDeleteModal} onOpenChange={(open) => setShowDeleteModal(open)}>
+        <DialogContent>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            await onDelete()
+            setShowDeleteModal(false)
+          }}>
+            <DialogHeader>
+              <DialogTitle>
+                ¿Estás seguro de que quieres eliminar este post?
+              </DialogTitle>
+              <DialogDescription>
+                Esta acción no se puede deshacer. El post será eliminado permanentemente.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" >Cancelar</Button>
+              </DialogClose>
+              <Button type="submit">Aceptar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

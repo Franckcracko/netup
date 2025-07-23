@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,46 +9,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Users, ImageIcon, Send, Loader } from "lucide-react"
 import Link from "next/link"
-import { User } from "@prisma/client"
-import { getUserByEmail } from "@/data/user"
-import { useUser } from "@clerk/nextjs"
 import { usePost } from "@/hooks/use-post"
 import { Post } from "@/components/post"
+import { useUser } from "@/hooks/use-user"
 
 export default function Dashboard() {
-  const { user: userClerk, isLoaded, isSignedIn } = useUser()
   const {
     handleChangeQuery,
     handleCreatePost,
     handleReaction,
+    handleDeletePost,
     searchQuery,
     posts,
     isLoading,
   } = usePost()
 
-  const [user, setUser] = useState<User | null>(null)
+  const user = useUser()
+  
   const [newPost, setNewPost] = useState("")
 
   const [activeTab, setActiveTab] = useState("public")
-
-  useEffect(() => {
-    const getUser = async () => {
-      if (!isLoaded) return
-
-      if (isLoaded && !isSignedIn) return
-
-      try {
-        const userData = await getUserByEmail(userClerk!.emailAddresses[0]?.emailAddress || "")
-        if (userData) {
-          setUser(userData)
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error)
-      }
-    }
-
-    getUser()
-  }, [isLoaded, isSignedIn, userClerk])
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -148,6 +128,7 @@ export default function Dashboard() {
                 key={post.id}
                 isAuthor={post.author.id === user?.id}
                 post={post}
+                onDelete={async () => await handleDeletePost(post.id)}
                 onReaction={async (reaction) => await handleReaction(index, reaction, user?.id || "")}
               />
             ))}

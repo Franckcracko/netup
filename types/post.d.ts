@@ -16,4 +16,5 @@ export interface Post {
     id: string;
     type: PostReactionType;
   }
+  commentsCount?: number;
 }

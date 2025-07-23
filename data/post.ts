@@ -29,6 +29,7 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
     id: string;
     type: PostReactionType;
   }
+  commentsCount: number;
 }[]> => {
   const offset = (page - 1) * limit;
   const userClerk = await currentUser()
@@ -47,6 +48,11 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
     skip: offset,
     take: limit,
     include: {
+      _count: {
+        select: {
+          comments: true,
+        }
+      },
       author: {
         select: {
           id: true,
@@ -82,7 +88,8 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
             }
           }
         }
-      ]
+      ],
+      deleted: false
     },
     orderBy: {
       createdAt: 'desc',
@@ -92,7 +99,12 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
   return posts.map(post => {
     if (post.reactions.length === 0) {
       return {
-        ...post,
+        id: post.id,
+        content: post.content,
+        image: post.image,
+        createdAt: post.createdAt,
+        author: post.author,
+        commentsCount: post._count.comments,
         reactions: {
           'angry': { count: 0 },
           'haha': { count: 0 },
@@ -106,23 +118,37 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
 
     const reactedId = post.reactions.findIndex(reaction => reaction.user.id === user.id)
 
-    const reactions = post.reactions.reduce((acc, reaction) => {
+    const reactions = {
+      'angry': { count: 0 },
+      'haha': { count: 0 },
+      'like': { count: 0 },
+      'love': { count: 0 },
+      'sad': { count: 0 },
+      'wow': { count: 0 },
+    }
+
+    post.reactions.forEach(reaction => {
       const type = reaction.type as PostReactionType;
-      if (!acc[type]) {
-        acc[type] = { count: 0 };
+      if (reactions[type]) {
+        reactions[type].count += 1;
       }
-      acc[type].count += 1;
-      return acc;
-    }, {} as Record<PostReactionType, { count: number }>)
+    })
+
+    // If the user has reacted to the post, we include their reaction type
+    const reacted = reactedId !== -1 ? {
+      id: post.reactions[reactedId].id,
+      type: post.reactions[reactedId].type,
+    } : undefined
 
     return {
-      ...post,
-      userId: undefined,
-      reacted: reactedId !== -1 ? {
-        id: post.reactions[reactedId].id,
-        type: post.reactions[reactedId].type,
-      } : undefined,
+      id: post.id,
+      content: post.content,
+      image: post.image,
+      createdAt: post.createdAt,
+      author: post.author,
+      reacted,
       reactions,
+      commentsCount: post._count.comments,
     }
   })
 }
@@ -147,7 +173,8 @@ export const getPost = async (id: string): Promise<{
 }> => {
   const post = await prisma.post.findUnique({
     where: {
-      id
+      id,
+      deleted: false
     },
     include: {
       author: {
@@ -182,7 +209,7 @@ export const getPost = async (id: string): Promise<{
   }
 
   const user = await getUserByEmail(userClerk.emailAddresses[0].emailAddress);
-  
+
   if (!user) {
     throw new Error('User not found');
   }
@@ -206,4 +233,42 @@ export const getPost = async (id: string): Promise<{
     } : undefined,
     reactions,
   }
+}
+
+export const getCommentsByPost = async (postId: string, page = 1, limit = 25): Promise<{
+  id: string;
+  content: string;
+  createdAt: Date;
+  user: {
+    id: string;
+    username: string;
+    avatar: string | null;
+  };
+}[]> => {
+  const offset = (page - 1) * limit;
+
+  const comments = await prisma.comment.findMany({
+    where: {
+      postId,
+    },
+    skip: offset,
+    take: limit,
+    orderBy: {
+      createdAt: 'desc',
+    },
+    include: {
+      author: true
+    }
+  })
+
+  return comments.map(comment => ({
+    id: comment.id,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    user: {
+      id: comment.author.id,
+      username: comment.author.username,
+      avatar: comment.author.avatar,
+    }
+  }))
 }
