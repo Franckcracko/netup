@@ -1,0 +1,130 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  username      String         @unique
+  fullName      String
+  avatar        String?        // optional
+  bio           String?        // optional
+  joinDate      DateTime       @default(now())
+  friendsCount  Int            @default(0)
+  postsCount    Int            @default(0)
+
+  posts         Post[]         @relation("UserPosts")
+  comments      Comment[]      @relation("UserComments")
+  sentRequests  FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
+
+  notifications Notification[] 
+
+  // Likes represented in Post.likesIds
+  // Reactions stored as Json in Post
+
+  @@map("users")
+  Notification Notification[] @relation("FromUserNotifications")
+  reactions Reaction[]
+}
+
+model Post {
+  id          String        @id @default(uuid())
+  userId      String
+  content     String
+  image       String?       // optional
+  createdAt   DateTime      @default(now())
+  
+  author      User          @relation("UserPosts", fields: [userId], references: [id])
+  comments    Comment[]
+  reactions Reaction[]
+
+  notifications Notification[] // Notifications pointing to this post
+
+  @@map("posts")
+}
+
+model Reaction {
+  id         String     @id @default(uuid())
+  userId     String
+  postId     String
+  type       ReactionType
+  createdAt  DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  post       Post       @relation(fields: [postId], references: [id])
+
+  @@map("reactions")
+}
+
+model Comment {
+  id         String     @id @default(uuid())
+  userId     String
+  postId     String
+  content    String
+  createdAt  DateTime   @default(now())
+
+  author     User       @relation("UserComments", fields: [userId], references: [id])
+  post       Post       @relation(fields: [postId], references: [id])
+
+  @@map("comments")
+}
+
+model FriendRequest {
+  id          String    @id @default(uuid())
+  fromUserId  String
+  toUserId    String
+  status      FriendRequestStatus
+  createdAt   DateTime  @default(now())
+
+  fromUser    User      @relation("SentRequests", fields: [fromUserId], references: [id])
+  toUser      User      @relation("ReceivedRequests", fields: [toUserId], references: [id])
+
+  @@map("friend_requests")
+}
+
+model Notification {
+  id         String     @id @default(uuid())
+  userId     String
+  type       NotificationType
+  message    String
+  read       Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  fromUserId String?    // optional
+  postId     String?    // optional
+
+  user       User       @relation(fields: [userId], references: [id])
+  fromUser   User?      @relation("FromUserNotifications", fields: [fromUserId], references: [id])
+  post       Post?      @relation(fields: [postId], references: [id])
+
+  @@map("notifications")
+}
+
+enum FriendRequestStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum NotificationType {
+  like
+  comment
+  friend_request
+  friend_accepted
+}
+
+enum ReactionType {
+  like
+  love
+  haha
+  wow
+  sad
+  angry
+}
