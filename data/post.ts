@@ -3,17 +3,9 @@
 import { prisma } from '@/lib/db';
 import { currentUser } from '@clerk/nextjs/server';
 import { getUserByEmail } from './user';
+import { Prisma } from '@prisma/client';
 
-export type PostReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
-
-/** 
-  * @function getPosts - Retrieves a paginated list of posts with optional search query.
-  * @params query - Optional search query to filter posts by content or author username.
-  * @params page - The page number for pagination, default is 1.
-  * @params limit - The number of posts to return per page, default is 25.
-  * @return {Promise<Array>} - Returns a promise that resolves to an array of posts.
-  */
-export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
+interface Post {
   id: string;
   content: string;
   image: string | null;
@@ -30,7 +22,30 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
     type: PostReactionType;
   }
   commentsCount: number;
-}[]> => {
+}
+
+export type PostReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
+
+/** 
+  * @function getPosts - Retrieves a paginated list of posts with optional search query.
+  * @params query - Optional search query to filter posts by content or author username.
+  * @params page - The page number for pagination, default is 1.
+  * @params limit - The number of posts to return per page, default is 25.
+  * @return {Promise<Array>} - Returns a promise that resolves to an array of posts.
+  */
+export const getPosts = async ({
+  query,
+  page = 1,
+  limit = 5,
+}: {
+  query?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{
+  posts: Post[];
+  totalCount: number;
+  hasNext: boolean;
+}> => {
   const offset = (page - 1) * limit;
   const userClerk = await currentUser()
 
@@ -42,6 +57,32 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
 
   if (!user) {
     throw new Error('User not found');
+  }
+
+  const orQueries: Prisma.PostWhereInput[] =
+    [
+      {
+        content: {
+          contains: query || '',
+          mode: 'insensitive',
+        }
+      },
+    ]
+
+  if (query?.charAt(0) === '@' && query.length > 1) {
+    orQueries.push({
+      author: {
+        username: {
+          equals: `${query}`.slice(1).trim(),
+          mode: 'insensitive',
+        }
+      }
+    })
+  }
+
+  const where: Prisma.PostWhereInput = {
+    OR: orQueries,
+    deleted: false
   }
 
   const posts = await prisma.post.findMany({
@@ -72,31 +113,15 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
         }
       }
     },
-    where: {
-      OR: [
-        {
-          content: {
-            contains: query,
-            mode: 'insensitive',
-          }
-        },
-        {
-          author: {
-            username: {
-              contains: query,
-              mode: 'insensitive',
-            }
-          }
-        }
-      ],
-      deleted: false
-    },
+    where,
     orderBy: {
       createdAt: 'desc',
     },
   })
 
-  return posts.map(post => {
+  const totalCount = await prisma.post.count({ where })
+
+  const postsWithReactions = posts.map(post => {
     if (post.reactions.length === 0) {
       return {
         id: post.id,
@@ -151,6 +176,12 @@ export const getPosts = async (query?: string, page = 1, limit = 25,): Promise<{
       commentsCount: post._count.comments,
     }
   })
+
+  return {
+    posts: postsWithReactions,
+    totalCount,
+    hasNext: totalCount > (page * limit),
+  }
 }
 
 export const getPost = async (id: string): Promise<{
@@ -235,7 +266,7 @@ export const getPost = async (id: string): Promise<{
   }
 }
 
-export const getCommentsByPost = async (postId: string, page = 1, limit = 25): Promise<{
+export const getCommentsByPost = async (postId: string, page = 1, limit = 5): Promise<{
   id: string;
   content: string;
   createdAt: Date;

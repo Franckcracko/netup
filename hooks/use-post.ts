@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getPosts } from "@/data/post"
 import { createPost, reactToPost } from "@/app/actions";
 import { Post } from "@/types/post";
 import { deletePost } from "@/app/actions"
+import { debounce } from "@/utils/debounce";
 
 export const usePost = () => {
   const [posts, setPosts] = useState<Post[]>([])
+  const [hasNextPage, setHasNextPage] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState("")
 
   const [isLoading, setisLoading] = useState(false)
@@ -79,33 +82,74 @@ export const usePost = () => {
     })
   }
 
-  const handleChangeQuery = (query: string) => {
-    setSearchQuery(query)
-  }
-
-  const handleDeletePost = async (postId: string) => {
-    try {
-      await deletePost(postId)
-
-      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
-    } catch (error) {
-      console.error("Error deleting post:", error)
-    }
-  }
-
-  useEffect(() => {
-    const getPostsData = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSearchDebounce = useCallback(
+    debounce(async (query: string) => {
+      setIsLoadingData(true)
       try {
-        const postsData = await getPosts()
-        setPosts(postsData)
+        const postsData = await getPosts({ page: 1, query })
+        setPosts(postsData.posts)
+        setHasNextPage(postsData.hasNext)
+        setCurrentPage(1)
       } catch (error) {
         console.error("Error fetching posts:", error)
       } finally {
         setIsLoadingData(false)
       }
-    }
+    }, 300),
+    []
+  )
 
-    getPostsData()
+  const handleChangeQuery = async (query: string) => {
+    setSearchQuery(query)
+
+    if (query.trim() !== '') {
+      handleSearchDebounce(query)
+    } else {
+      await fetchPosts(1)
+    }
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId))
+
+      await deletePost(postId)
+    } catch (error) {
+      console.error("Error deleting post:", error)
+    }
+  }
+
+  const fetchPosts = async (page: number) => {
+    try {
+      const postsData = await getPosts({ page })
+      setPosts(prevState => [...prevState, ...postsData.posts])
+      setHasNextPage(postsData.hasNext)
+    } catch (error) {
+      console.error("Error fetching posts:", error)
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  const handleLoadMoreData = async () => {
+    const newPage = currentPage + 1;
+    await fetchPosts(newPage);
+    setCurrentPage(newPage);
+  };
+
+  useEffect(() => {
+    let subscribed = true;
+
+    (async () => {
+      if (subscribed) {
+        fetchPosts(1)
+      }
+    })();
+
+    return () => {
+      subscribed = false;
+    };
   }, [])
 
   return {
@@ -113,6 +157,9 @@ export const usePost = () => {
     handleCreatePost,
     handleReaction,
     handleDeletePost,
+    fetchPosts,
+    handleLoadMoreData,
+    hasNextPage,
     searchQuery,
     posts,
     isLoading,

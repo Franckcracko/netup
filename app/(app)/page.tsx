@@ -1,15 +1,18 @@
 "use client"
 
+import Link from "next/link"
+import InfiniteScroll from "react-infinite-scroll-component";
+
+import { useUser } from "@/hooks/use-user"
+import { usePost } from "@/hooks/use-post"
+
+import { Search, Users, ImageIcon, Send, Loader } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Search, Users, ImageIcon, Send } from "lucide-react"
-import Link from "next/link"
-import { usePost } from "@/hooks/use-post"
 import { Post, PostSkeleton } from "@/components/post"
-import { useUser } from "@/hooks/use-user"
 import { PostCreator } from "@/components/post-creator"
 
 export default function Dashboard() {
@@ -18,6 +21,8 @@ export default function Dashboard() {
     handleCreatePost,
     handleReaction,
     handleDeletePost,
+    handleLoadMoreData,
+    hasNextPage,
     searchQuery,
     posts,
     isLoading,
@@ -26,23 +31,21 @@ export default function Dashboard() {
 
   const user = useUser()
 
-  if (isLoadingData || !user) {
+  if ((isLoadingData && !user) || !user) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Search Bar */}
         <div className="mb-4 sm:mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <Input
-              placeholder="Buscar posts, usuarios..."
+              placeholder="Buscar posts, @usuarios..."
               value={searchQuery}
-              onChange={(e) => handleChangeQuery(e.target.value)}
+              onChange={async (e) => await handleChangeQuery(e.target.value)}
               className="pl-9 sm:pl-10 bg-[#2d2d2d] border-gray-600 text-white placeholder-gray-400 text-sm sm:text-base"
             />
           </div>
         </div>
 
-        {/* Create Post */}
         <Card className="bg-[#2d2d2d] border-gray-700 mb-4 sm:mb-6">
           <CardContent className="p-3 sm:p-4">
             <div className="flex gap-2 sm:gap-3">
@@ -79,7 +82,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Tabs */}
         <div className="mt-5">
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, index) => (
@@ -88,7 +90,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
     )
   }
 
@@ -99,9 +100,9 @@ export default function Dashboard() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
           <Input
-            placeholder="Buscar posts, usuarios..."
+            placeholder="Buscar posts, @usuarios..."
             value={searchQuery}
-            onChange={(e) => handleChangeQuery(e.target.value)}
+            onChange={async (e) => await handleChangeQuery(e.target.value)}
             className="pl-9 sm:pl-10 bg-[#2d2d2d] border-gray-600 text-white placeholder-gray-400 text-sm sm:text-base"
           />
         </div>
@@ -114,33 +115,64 @@ export default function Dashboard() {
         isLoading={isLoading}
       />
 
-      {/* Tabs */}
-      <div className="mt-5">
-        {
-          posts.length > 0 ? (
+      {
+        !isLoadingData ? (
+          <div className="mt-5">
+            <InfiniteScroll
+              dataLength={5}
+              next={handleLoadMoreData}
+              hasMore={hasNextPage}
+              loader={
+                <div className="flex justify-center py-4">
+                  <Loader
+                    className="w-6 h-6 text-purple-600 animate-spin"
+                    aria-label="Cargando posts"
+                  />
+                </div>
+              }
+              endMessage={
+                <p
+                  className="text-center text-gray-500 py-5"
+                  aria-label="No hay más posts"
+                >No hay más posts</p>
+              }
+            >
+              {
+                posts.length > 0 ? (
+                  <div className="space-y-4">
+                    {posts.map((post, index) => (
+                      <Post
+                        key={post.id}
+                        isAuthor={post.author.id === user?.id}
+                        post={post}
+                        onDelete={async () => await handleDeletePost(post.id)}
+                        onReaction={async (reaction) => await handleReaction(index, reaction, user.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No hay posts de amigos</h3>
+                    <p className="text-gray-400 mb-4">Agrega amigos para ver sus publicaciones aquí</p>
+                    <Link href="/friends">
+                      <Button className="bg-purple-600 hover:bg-purple-700">Buscar Amigos</Button>
+                    </Link>
+                  </div>
+                )
+              }
+            </InfiniteScroll>
+          </div>
+        ) : (
+          <div className="mt-5">
             <div className="space-y-4">
-              {posts.map((post, index) => (
-                <Post
-                  key={post.id}
-                  isAuthor={post.author.id === user?.id}
-                  post={post}
-                  onDelete={async () => await handleDeletePost(post.id)}
-                  onReaction={async (reaction) => await handleReaction(index, reaction, user.id)}
-                />
+              {Array.from({ length: 5 }).map((_, index) => (
+                <PostSkeleton key={index} />
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No hay posts de amigos</h3>
-              <p className="text-gray-400 mb-4">Agrega amigos para ver sus publicaciones aquí</p>
-              <Link href="/friends">
-                <Button className="bg-purple-600 hover:bg-purple-700">Buscar Amigos</Button>
-              </Link>
-            </div>
-          )
-        }
-      </div>
+          </div>
+        )
+      }
     </div>
   )
 }
