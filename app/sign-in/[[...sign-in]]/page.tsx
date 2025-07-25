@@ -5,22 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Users, MessageCircle, Heart } from "lucide-react"
 import { SignInForm } from "@/components/sign-in-form"
 import { SignUpForm } from "@/components/sign-up-form"
-import { useAuth } from "@clerk/nextjs"
-import { useRouter, useSearchParams } from "next/navigation"
 
 export default function AuthPage() {
-  const searchParams = useSearchParams()
-  const { isLoaded, isSignedIn } = useAuth()
-
-  const router = useRouter()
-
-  if (!isLoaded) return null // Prevent rendering until auth state is loaded
-
-  if (isLoaded && isSignedIn) {
-    router.replace(searchParams.get('redirect_url') || "/")
-    return null
-  }
-
   return (
     <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center p-4">
       <div className="w-full max-w-md">

@@ -242,6 +242,7 @@ export const getCommentsByPost = async (postId: string, page = 1, limit = 25): P
   user: {
     id: string;
     username: string;
+    fullName: string;
     avatar: string | null;
   };
 }[]> => {
@@ -268,6 +269,7 @@ export const getCommentsByPost = async (postId: string, page = 1, limit = 25): P
     user: {
       id: comment.author.id,
       username: comment.author.username,
+      fullName: comment.author.fullName,
       avatar: comment.author.avatar,
     }
   }))

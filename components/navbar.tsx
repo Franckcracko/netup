@@ -12,8 +12,8 @@ export const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo y título */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-600 to-purple-400 rounded-lg flex items-center justify-center">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <div className="size-10 rounded-lg flex items-center justify-center">
+              <img src={'/logo.webp'} alt="logo netup" className="size-full object-fill" />
             </div>
             <h1 className="text-lg sm:text-xl font-bold text-white">NetUP</h1>
           </div>

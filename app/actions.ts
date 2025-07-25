@@ -1,6 +1,7 @@
 'use server';
 
 import { PostReactionType, getPost } from "@/data/post";
+import { sendImageToCloudinary } from "@/lib/cloudinary";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
 
@@ -90,7 +91,13 @@ export const createPost = async (formData: FormData) => {
   }
 
   if (image) {
-    // Assuming you have a function to handle file uploads
+    const bufferImage = await image.arrayBuffer()
+    const base64Image = Buffer.from(bufferImage).toString('base64')
+    const cloudinaryResponse = await sendImageToCloudinary({ image: base64Image });
+
+    if (cloudinaryResponse.secure_url) {
+      newPost.image = cloudinaryResponse.secure_url; // Store the URL of the uploaded image
+    }
   }
 
   try {
@@ -111,10 +118,10 @@ export const deletePost = async (postId: string): Promise<void> => {
   if (!postId) {
     throw new Error("Post ID is required");
   }
-  
+
   try {
     const userClerk = await currentUser()
-    
+
     if (!userClerk) {
       throw new Error("User not authenticated");
     }

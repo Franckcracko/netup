@@ -3,7 +3,7 @@ import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Button } from "./ui/button"
 import { formatTimeAgo } from "@/utils/format-time"
-import { MoreHorizontal, Share2 } from "lucide-react"
+import { AlertCircle, MessageCircle, MoreHorizontal, Pencil, Share2, Trash } from "lucide-react"
 import { reactions } from "@/config/constants"
 import { Badge } from "./ui/badge"
 import {
@@ -29,6 +29,7 @@ export const Post = ({
   onDelete: () => Promise<void>;
 }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showCommentsModal, setShowCommentsModal] = useState(false)
 
   return (
     <Card className="bg-[#2d2d2d] border-gray-700">
@@ -61,14 +62,26 @@ export const Post = ({
                   {
                     isAuthor ? (
                       <>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Pencil className="w-4 h-4 mr-1" />
+                          Editar
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setShowDeleteModal(true)}>Borrar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowDeleteModal(true)}>
+                          <Trash className="w-4 h-4 mr-1" />
+                          Borrar
+                        </DropdownMenuItem>
                       </>
                     ) : (
                       <>
-                        <DropdownMenuItem disabled>Reportar</DropdownMenuItem>
-                        <DropdownMenuItem disabled>Compartir</DropdownMenuItem>
+                        <DropdownMenuItem disabled>
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          Reportar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem disabled>
+                          <Share2 className="w-4 h-4 mr-1" />
+                          Compartir
+                        </DropdownMenuItem>
                       </>
                     )
                   }
@@ -109,7 +122,18 @@ export const Post = ({
 
             <div className="flex items-center justify-between pt-2 border-t border-gray-600">
               <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-blue-400"
+                  onClick={() => setShowCommentsModal(true)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-1" />
+                  {post.commentsCount}
+                </Button>
                 <CommentsModal
+                  isOpen={showCommentsModal}
+                  onClose={() => setShowCommentsModal(false)}
                   post={post}
                 />
               </div>
@@ -122,7 +146,7 @@ export const Post = ({
         </div>
       </CardContent>
       <Dialog open={showDeleteModal} onOpenChange={(open) => setShowDeleteModal(open)}>
-        <DialogContent>
+        <DialogContent className="bg-[#2d2d2d] border-gray-700">
           <form onSubmit={async (e) => {
             e.preventDefault();
             await onDelete()

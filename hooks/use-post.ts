@@ -13,14 +13,14 @@ export const usePost = () => {
   const [isLoading, setisLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
 
-
-  const handleCreatePost = async ({ user, content }: {
+  const handleCreatePost = async ({ user, content, image }: {
     user: {
       id: string;
       username: string;
       avatar: string | null;
     } | null;
     content: string;
+    image?: File | null;
   }) => {
     if (!content.trim() || !user) return
 
@@ -28,6 +28,10 @@ export const usePost = () => {
 
     formData.append('userId', user.id)
     formData.append('content', content)
+
+    if (image) {
+      formData.append('image', image)
+    }
 
     setisLoading(true)
 
