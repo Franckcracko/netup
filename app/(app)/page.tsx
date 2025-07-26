@@ -29,7 +29,7 @@ export default function Dashboard() {
     isLoadingData
   } = usePost()
 
-  const user = useUser()
+  const { user } = useUser()
 
   if ((isLoadingData && !user) || !user) {
     return (
@@ -118,8 +118,9 @@ export default function Dashboard() {
       {
         !isLoadingData ? (
           <div className="mt-5">
+
             <InfiniteScroll
-              dataLength={5}
+              dataLength={posts.length}
               next={handleLoadMoreData}
               hasMore={hasNextPage}
               loader={

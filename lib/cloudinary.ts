@@ -19,3 +19,10 @@ export const sendImageToCloudinary = async ({ image }: { image: string; }) => {
 
   return uploadResult
 }
+
+export const deleteImageFromCloudinary = async ({ publicId }: { publicId: string; }) => {
+  const deleteResult = await cloudinary.uploader
+    .destroy(publicId);
+
+  return deleteResult
+}

@@ -1,9 +1,13 @@
 'use server';
 
 import { PostReactionType, getPost } from "@/data/post";
-import { sendImageToCloudinary } from "@/lib/cloudinary";
+import { getUserByEmail } from "@/data/user";
+import { deleteImageFromCloudinary, sendImageToCloudinary } from "@/lib/cloudinary";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@clerk/nextjs/server";
+
+const ACCEPT_IMAGES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB
 
 /**
  * Create a new user
@@ -64,6 +68,102 @@ export const verifyUsername = async (username: string): Promise<boolean> => {
   }
 }
 
+export const updateUser = async ({
+  fullName,
+  bio,
+}: {
+  fullName?: string;
+  bio?: string;
+}): Promise<object | null> => {
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { email: userClerk.emailAddresses[0]?.emailAddress },
+      data: {
+        fullName,
+        bio,
+      },
+    });
+    return updatedUser;
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw new Error("Failed to update user");
+  }
+}
+
+export const updateUserAvatar = async ({
+  avatar,
+}: {
+  userId: string;
+  avatar: File | undefined;
+}): Promise<string | null> => {
+  if (avatar && !(avatar instanceof File)) {
+    throw new Error("Avatar must be a valid file");
+  }
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress)
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let avatarUrl = null;
+    let avatarPublicId = null;
+
+    if (avatar) {
+      // Validate the image type
+      if (!ACCEPT_IMAGES.includes(avatar.type)) {
+        throw new Error("Invalid image type. Supported types are: jpeg, png, gif, webp, jpg");
+      }
+
+      // Validate the image size
+      if (avatar.size > MAX_IMAGE_SIZE) {
+        throw new Error("Image size exceeds the maximum limit of 1MB");
+      }
+
+      // If the user already has an avatar, delete it from Cloudinary
+      if (user.avatarPublicId) {
+        await deleteImageFromCloudinary({ publicId: user.avatarPublicId });
+      }
+
+      const bufferImage = await avatar.arrayBuffer();
+      const base64Image = Buffer.from(bufferImage).toString('base64');
+      const cloudinaryResponse = await sendImageToCloudinary({ image: base64Image });
+
+      if (cloudinaryResponse.secure_url) {
+        avatarUrl = cloudinaryResponse.secure_url; // Store the URL of the uploaded image
+        avatarPublicId = cloudinaryResponse.public_id; // Store the public ID for future reference
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        avatar: avatarUrl,
+        avatarPublicId: avatarPublicId,
+      },
+    });
+
+    return avatarUrl;
+  } catch (error) {
+    console.error("Error updating user avatar:", error);
+    throw new Error("Failed to update user avatar");
+  }
+}
+
 /**
  * Create a post
  * @function
@@ -73,30 +173,53 @@ export const verifyUsername = async (username: string): Promise<boolean> => {
  * @param {File | undefined} formData.get('image') - The image file for the post (optional).
  */
 export const createPost = async (formData: FormData) => {
-  const userId = formData.get('userId') as string;
   const content = formData.get('content') as string;
   const image = formData.get('image') as File | undefined;
 
-  if (!userId || !content) {
+  if (!content) {
     throw new Error("Title and content are required");
+  }
+
+  const userClerk = await currentUser()
+
+  if (!userClerk) {
+    throw new Error("User not authenticated");
+  }
+
+  const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
+  if (!user) {
+    throw new Error("User not found");
   }
 
   const newPost: {
     userId: string;
     content: string;
     image?: string;
+    imagePublicId?: string;
   } = {
-    userId,
+    userId: user.id,
     content,
   }
 
-  if (image) {
+  if (image && image instanceof File && image.size > 0) {
+    // Validate the image type
+    if (!ACCEPT_IMAGES.includes(image.type)) {
+      throw new Error("Invalid image type. Supported types are: jpeg, png, gif, webp, jpg");
+    }
+
+    // Validate the image size
+    if (image.size > MAX_IMAGE_SIZE) {
+      throw new Error("Image size exceeds the maximum limit of 1MB");
+    }
+
     const bufferImage = await image.arrayBuffer()
     const base64Image = Buffer.from(bufferImage).toString('base64')
     const cloudinaryResponse = await sendImageToCloudinary({ image: base64Image });
 
     if (cloudinaryResponse.secure_url) {
       newPost.image = cloudinaryResponse.secure_url; // Store the URL of the uploaded image
+      newPost.imagePublicId = cloudinaryResponse.public_id; // Store the public ID for future reference
     }
   }
 
@@ -140,6 +263,11 @@ export const deletePost = async (postId: string): Promise<void> => {
       throw new Error("You are not authorized to delete this post");
     }
 
+    // If the post has an image, delete it from Cloudinary
+    if (post.imagePublicId) {
+      await deleteImageFromCloudinary({ publicId: post.imagePublicId });
+    }
+
     // Finally, delete the post itself
     await prisma.post.update({
       where: { id: postId },
@@ -162,7 +290,7 @@ export const deletePost = async (postId: string): Promise<void> => {
  */
 export const reactToPost = async ({
   postId,
-  userId,
+  // userId,
   type,
 }: {
   postId: string,
@@ -175,16 +303,24 @@ export const reactToPost = async ({
   type: PostReactionType;
   createdAt: Date;
 }> => {
-  if (!postId || !userId || !type) {
-    throw new Error("Post ID, User ID, and reaction type are required");
+  if (!postId || !type) {
+    throw new Error("Post ID, and reaction type are required");
   }
 
   try {
+    const userClerk = await currentUser()
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+    if (!user) {
+      throw new Error("User not found");
+    }
     // Check if the user has already reacted to the post
     const existingReaction = await prisma.reaction.findFirst({
       where: {
         postId,
-        userId,
+        userId: user.id,
       },
     });
 
@@ -210,7 +346,7 @@ export const reactToPost = async ({
     const reaction = await prisma.reaction.create({
       data: {
         postId,
-        userId,
+        userId: user.id,
         type,
       },
     });
@@ -232,21 +368,32 @@ export const reactToPost = async ({
  */
 export const deleteReactPost = async ({
   postId,
-  userId,
+  // userId,
 }: {
   postId: string;
   userId: string;
 }): Promise<void> => {
-  if (!postId || !userId) {
+  if (!postId) {
     throw new Error("Post ID and User ID are required");
   }
 
   try {
+    const userClerk = await currentUser()
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     // Find the reaction to delete
     const reaction = await prisma.reaction.findFirst({
       where: {
         postId,
-        userId,
+        userId: user.id,
       },
     });
 

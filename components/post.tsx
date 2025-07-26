@@ -133,7 +133,7 @@ export const Post = ({
                 </Button>
                 <CommentsModal
                   isOpen={showCommentsModal}
-                  onClose={() => setShowCommentsModal(false)}
+                  onChangeOpen={(value) => setShowCommentsModal(value)}
                   post={post}
                 />
               </div>

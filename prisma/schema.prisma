@@ -15,6 +15,7 @@ model User {
   username      String         @unique
   fullName      String
   avatar        String?        // optional
+  avatarPublicId     String?        // optional, for cloud storage
   bio           String?        // optional
   joinDate      DateTime       @default(now())
   friendsCount  Int            @default(0)
@@ -40,6 +41,7 @@ model Post {
   userId      String
   content     String
   image       String?       // optional
+  imagePublicId String?     // optional, for cloud storage
   createdAt   DateTime      @default(now())
   updatedAt   DateTime?      @updatedAt
   deleted      Boolean       @default(false)

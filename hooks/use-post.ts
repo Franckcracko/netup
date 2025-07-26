@@ -143,7 +143,15 @@ export const usePost = () => {
 
     (async () => {
       if (subscribed) {
-        fetchPosts(1)
+        try {
+          const postsData = await getPosts({ page:1 })
+          setPosts(postsData.posts)
+          setHasNextPage(postsData.hasNext)
+        } catch (error) {
+          console.error("Error fetching posts:", error)
+        } finally {
+          setIsLoadingData(false)
+        }
       }
     })();
 

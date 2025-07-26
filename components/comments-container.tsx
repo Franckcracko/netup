@@ -1,14 +1,17 @@
-import { getCommentsByPost } from "@/data/post";
-import { useEffect, useRef, useState } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+
+import { Loader, MessageSquare } from "lucide-react";
 import { Comment, CommentSkeleton } from "./comment";
-import { MessageSquare } from "lucide-react";
 
 export const CommentsContainer = ({
-  id,
+  isLoadingData,
   comments,
-  handleChangeComments
+  hasNextPage,
+  handleLoadMoreData,
+  totalComments
 }: {
-  id: string;
+  isLoadingData: boolean;
+  hasNextPage: boolean;
   comments: {
     id: string;
     content: string;
@@ -20,42 +23,9 @@ export const CommentsContainer = ({
       avatar: string | null;
     };
   }[];
-  handleChangeComments: (comments: {
-    id: string;
-    content: string;
-    createdAt: Date;
-    user: {
-      id: string;
-      username: string;
-      fullName: string;
-      avatar: string | null;
-    };
-  }[]) => void
+  totalComments: number;
+  handleLoadMoreData: () => Promise<void>;
 }) => {
-  const [isLoadingData, setIsLoadingData] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const getComments = async () => {
-      setIsLoadingData(true);
-      try {
-        const commentsData = await getCommentsByPost(id);
-        handleChangeComments(commentsData);
-      } catch (error) {
-        console.error("Error fetching comments:", error);
-      } finally {
-        setIsLoadingData(false);
-      }
-    }
-    getComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (!isLoadingData && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-    }
-  }, [comments, isLoadingData])
 
   if (isLoadingData) {
     return (
@@ -78,12 +48,35 @@ export const CommentsContainer = ({
       </div>
     )
   }
+
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {
-        comments.map((comment) => (<Comment key={`comment-${comment.id}`} comment={comment} />))
-      }
-      <div ref={messagesEndRef} />
+    <div className="flex-1 overflow-y-auto scroll-custom">
+      {/* <InfiniteScroll
+        dataLength={comments.length}
+        next={handleLoadMoreData}
+        hasMore={totalComments > comments.length}
+        loader={
+          <div className="flex justify-center">
+            <Loader
+              className="w-6 h-6 text-purple-600 animate-spin"
+              aria-label="Cargando mensajes"
+            />
+          </div>
+        }
+        endMessage={
+          <p
+            className="text-center text-gray-500 py-5"
+            aria-label="No hay más mensajes"
+          >No hay más mensajes</p>
+        }
+      > */}
+        <div className="space-y-10 p-4">
+          {
+            comments.map((comment) => (<Comment key={`comment-${comment.id}`} comment={comment} />))
+          }
+        </div>
+        {/* <div ref={messagesEndRef} /> */}
+      {/* </InfiniteScroll> */}
     </div>
   )
 }

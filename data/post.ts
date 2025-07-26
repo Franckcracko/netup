@@ -266,25 +266,39 @@ export const getPost = async (id: string): Promise<{
   }
 }
 
-export const getCommentsByPost = async (postId: string, page = 1, limit = 5): Promise<{
-  id: string;
-  content: string;
-  createdAt: Date;
-  user: {
+export const getCommentsByPost = async ({
+  postId,
+  page = 1,
+  limit = 10
+}: {
+  postId: string;
+  page?: number;
+  limit?: number;
+}): Promise<{
+  comments: {
     id: string;
-    username: string;
-    fullName: string;
-    avatar: string | null;
-  };
-}[]> => {
-  const offset = (page - 1) * limit;
+    content: string;
+    createdAt: Date;
+    user: {
+      id: string;
+      username: string;
+      fullName: string;
+      avatar: string | null;
+    };
+  }[];
+  totalCount: number;
+  hasNext: boolean;
+}> => {
+  // const offset = (page - 1) * limit;
+
+  const where = {
+    postId,
+  }
 
   const comments = await prisma.comment.findMany({
-    where: {
-      postId,
-    },
-    skip: offset,
-    take: limit,
+    where,
+    // skip: offset,
+    // take: limit,
     orderBy: {
       createdAt: 'desc',
     },
@@ -293,7 +307,9 @@ export const getCommentsByPost = async (postId: string, page = 1, limit = 5): Pr
     }
   })
 
-  return comments.map(comment => ({
+  const totalCount = await prisma.comment.count({ where })
+
+  const newComments = comments.map(comment => ({
     id: comment.id,
     content: comment.content,
     createdAt: comment.createdAt,
@@ -304,4 +320,10 @@ export const getCommentsByPost = async (postId: string, page = 1, limit = 5): Pr
       avatar: comment.author.avatar,
     }
   }))
+
+  return {
+    comments: newComments,
+    totalCount,
+    hasNext: totalCount > (page * limit),
+  }
 }
