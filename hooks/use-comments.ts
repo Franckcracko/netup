@@ -6,7 +6,7 @@ import { useUser } from "./use-user";
 import { createComment } from "@/app/actions";
 
 export const useComments = (postId: string) => {
-  const user = useUser()
+  const { user } = useUser()
 
   const [currentPage, setCurrentPage] = useState(1)
   const [hasNextPage, setHasNextPage] = useState(false)
@@ -51,7 +51,6 @@ export const useComments = (postId: string) => {
     try {
       const newComment = await createComment({
         postId,
-        userId: user.id, // Assuming the author is the user commenting
         content: content.trim(),
       })
 

@@ -4,6 +4,7 @@ import { PostReactionType, getPost } from "@/data/post";
 import { getUserByEmail } from "@/data/user";
 import { deleteImageFromCloudinary, sendImageToCloudinary } from "@/lib/cloudinary";
 import { prisma } from "@/lib/db";
+import { Post } from "@/types/post";
 import { currentUser } from "@clerk/nextjs/server";
 
 const ACCEPT_IMAGES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
@@ -172,7 +173,7 @@ export const updateUserAvatar = async ({
  * @param {string} formData.get('content') - The content of the post.
  * @param {File | undefined} formData.get('image') - The image file for the post (optional).
  */
-export const createPost = async (formData: FormData) => {
+export const createPost = async (formData: FormData): Promise<Post> => {
   const content = formData.get('content') as string;
   const image = formData.get('image') as File | undefined;
 
@@ -230,7 +231,22 @@ export const createPost = async (formData: FormData) => {
 
     const post = await getPost(id);
 
-    return post;
+    return {
+      id: post.id,
+      content: post.content,
+      image: post.image,
+      createdAt: post.createdAt,
+      author: post.author,
+      commentsCount: 0,
+      reactions: {
+        'angry': { count: 0 },
+        'haha': { count: 0 },
+        'like': { count: 0 },
+        'love': { count: 0 },
+        'sad': { count: 0 },
+        'wow': { count: 0 },
+      }
+    };
   } catch (error) {
     console.error("Error creating post:", error);
     throw new Error("Failed to create post");
@@ -412,11 +428,9 @@ export const deleteReactPost = async ({
 
 export const createComment = async ({
   postId,
-  userId,
   content,
 }: {
   postId: string;
-  userId: string;
   content: string;
 }): Promise<{
   id: string;
@@ -425,15 +439,23 @@ export const createComment = async ({
   content: string;
   createdAt: Date;
 }> => {
-  if (!postId || !userId || !content) {
+  if (!postId || !content) {
     throw new Error("Post ID, User ID, and content are required");
   }
 
   try {
+    const userClerk = await currentUser()
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+    if (!user) {
+      throw new Error("User not found");
+    }
     const comment = await prisma.comment.create({
       data: {
+        userId: user.id,
         postId,
-        userId,
         content,
       },
     });
