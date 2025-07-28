@@ -1,5 +1,5 @@
 import { formatTimeAgo } from "@/utils/format-time";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 
 export const Comment = ({ comment }: {
   comment: {
@@ -15,7 +15,7 @@ export const Comment = ({ comment }: {
   }
 }) => {
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 border-b  py-4">
       <Avatar className="w-10 h-10 flex-shrink-0">
         <AvatarImage src={comment.user.avatar || "/placeholder.svg"} />
         <AvatarFallback className="bg-purple-600 text-white">
@@ -33,7 +33,7 @@ export const Comment = ({ comment }: {
           </div>
           <span className="text-xs text-gray-500">{formatTimeAgo(comment.createdAt)}</span>
         </div>
-        <p className="text-gray-200 text-sm">{comment.content}</p>
+        <p className="text-gray-200">{comment.content}</p>
       </div>
     </div>
   )

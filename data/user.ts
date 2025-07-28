@@ -14,8 +14,8 @@ export const getUserStats = async (email: string) => {
   if (!user) return null
 
   const [postsCount, reactionsCount, friendsCount] = await Promise.all([
-    prisma.post.count({ where: { userId: user.id } }),
-    prisma.reaction.count({ where: { userId: user.id } }),
+    prisma.post.count({ where: { userId: user.id, deleted: false } }),
+    prisma.reaction.count({ where: { userId: user.id, post: { deleted: false } } }),
     prisma.friendRequest.count({ where: { OR: [{ fromUserId: user.id }, { toUserId: user.id }], status: 'accepted' } }),
   ])
 

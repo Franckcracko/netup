@@ -10,44 +10,58 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  username      String         @unique
-  fullName      String
-  avatar        String?        // optional
-  avatarPublicId     String?        // optional, for cloud storage
-  bio           String?        // optional
-  joinDate      DateTime       @default(now())
-  friendsCount  Int            @default(0)
-  postsCount    Int            @default(0)
+  id             String   @id @default(uuid())
+  email          String   @unique
+  username       String   @unique
+  fullName       String
+  avatar         String? // optional
+  avatarPublicId String? // optional, for cloud storage
+  bio            String? // optional
+  joinDate       DateTime @default(now())
+  friendsCount   Int      @default(0)
+  postsCount     Int      @default(0)
 
-  posts         Post[]         @relation("UserPosts")
-  comments      Comment[]      @relation("UserComments")
-  sentRequests  FriendRequest[] @relation("SentRequests")
+  posts            Post[]          @relation("UserPosts")
+  comments         Comment[]       @relation("UserComments")
+  sentRequests     FriendRequest[] @relation("SentRequests")
   receivedRequests FriendRequest[] @relation("ReceivedRequests")
 
-  notifications Notification[] 
+  notifications Notification[]
 
-  // Likes represented in Post.likesIds
-  // Reactions stored as Json in Post
+  following Follower[] @relation("UserFollowing")
+  follower Follower[] @relation("UserFollowers")
+  Notification Notification[] @relation("FromUserNotifications")
+  reactions    Reaction[]
 
   @@map("users")
-  Notification Notification[] @relation("FromUserNotifications")
-  reactions Reaction[]
+}
+
+model Follower {
+  id        String   @id @default(uuid())
+  userId    String
+  followerId String
+  createdAt DateTime @default(now())
+
+  user     User @relation("UserFollowers", fields: [userId], references: [id])
+  followers User @relation("UserFollowing", fields: [followerId], references: [id])
+
+  @@unique([userId, followerId]) // Prevent duplicate follows
+  @@map("followers")
 }
 
 model Post {
-  id          String        @id @default(uuid())
-  userId      String
-  content     String
-  image       String?       // optional
-  imagePublicId String?     // optional, for cloud storage
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime?      @updatedAt
-  deleted      Boolean       @default(false)
-  
-  author      User          @relation("UserPosts", fields: [userId], references: [id])
-  comments    Comment[]
+  id            String    @id @default(uuid())
+  userId        String
+  content       String
+  image         String? // optional
+  imagePublicId String? // optional, for cloud storage
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime? @updatedAt
+  deleted       Boolean   @default(false)
+  type          PostType  @default(post)
+
+  author    User       @relation("UserPosts", fields: [userId], references: [id])
+  comments  Comment[]
   reactions Reaction[]
 
   notifications Notification[] // Notifications pointing to this post
@@ -56,59 +70,64 @@ model Post {
 }
 
 model Reaction {
-  id         String     @id @default(uuid())
-  userId     String
-  postId     String
-  type       ReactionType
-  createdAt  DateTime   @default(now())
+  id        String       @id @default(uuid())
+  userId    String
+  postId    String
+  type      ReactionType
+  createdAt DateTime     @default(now())
 
-  user       User       @relation(fields: [userId], references: [id])
-  post       Post       @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
 
   @@map("reactions")
 }
 
 model Comment {
-  id         String     @id @default(uuid())
-  userId     String
-  postId     String
-  content    String
-  createdAt  DateTime   @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  content   String
+  createdAt DateTime @default(now())
 
-  author     User       @relation("UserComments", fields: [userId], references: [id])
-  post       Post       @relation(fields: [postId], references: [id])
+  author User @relation("UserComments", fields: [userId], references: [id])
+  post   Post @relation(fields: [postId], references: [id])
 
   @@map("comments")
 }
 
 model FriendRequest {
-  id          String    @id @default(uuid())
-  fromUserId  String
-  toUserId    String
-  status      FriendRequestStatus
-  createdAt   DateTime  @default(now())
+  id         String              @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  status     FriendRequestStatus
+  createdAt  DateTime            @default(now())
 
-  fromUser    User      @relation("SentRequests", fields: [fromUserId], references: [id])
-  toUser      User      @relation("ReceivedRequests", fields: [toUserId], references: [id])
+  fromUser User @relation("SentRequests", fields: [fromUserId], references: [id])
+  toUser   User @relation("ReceivedRequests", fields: [toUserId], references: [id])
 
   @@map("friend_requests")
 }
 
 model Notification {
-  id         String     @id @default(uuid())
+  id         String           @id @default(uuid())
   userId     String
   type       NotificationType
   message    String
-  read       Boolean    @default(false)
-  createdAt  DateTime   @default(now())
-  fromUserId String?    // optional
-  postId     String?    // optional
+  read       Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  fromUserId String? // optional
+  postId     String? // optional
 
-  user       User       @relation(fields: [userId], references: [id])
-  fromUser   User?      @relation("FromUserNotifications", fields: [fromUserId], references: [id])
-  post       Post?      @relation(fields: [postId], references: [id])
+  user     User  @relation(fields: [userId], references: [id])
+  fromUser User? @relation("FromUserNotifications", fields: [fromUserId], references: [id])
+  post     Post? @relation(fields: [postId], references: [id])
 
   @@map("notifications")
+}
+
+enum PostType {
+  post
+  announcement
 }
 
 enum FriendRequestStatus {

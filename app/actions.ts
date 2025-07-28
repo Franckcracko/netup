@@ -6,6 +6,7 @@ import { deleteImageFromCloudinary, sendImageToCloudinary } from "@/lib/cloudina
 import { prisma } from "@/lib/db";
 import { Post } from "@/types/post";
 import { currentUser } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 
 const ACCEPT_IMAGES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
 const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB
@@ -231,6 +232,8 @@ export const createPost = async (formData: FormData): Promise<Post> => {
 
     const post = await getPost(id);
 
+    revalidatePath('/')
+
     return {
       id: post.id,
       content: post.content,
@@ -289,6 +292,8 @@ export const deletePost = async (postId: string): Promise<void> => {
       where: { id: postId },
       data: { deleted: true },
     });
+
+    revalidatePath('/');
   } catch (error) {
     console.error("Error deleting post:", error);
     throw new Error("Failed to delete post");
@@ -306,15 +311,12 @@ export const deletePost = async (postId: string): Promise<void> => {
  */
 export const reactToPost = async ({
   postId,
-  // userId,
   type,
 }: {
   postId: string,
-  userId: string,
   type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
 }): Promise<{
   id: string;
-  userId: string;
   postId: string;
   type: PostReactionType;
   createdAt: Date;
@@ -439,19 +441,29 @@ export const createComment = async ({
   content: string;
   createdAt: Date;
 }> => {
+  const MAX_LENGTH = 200;
+
   if (!postId || !content) {
     throw new Error("Post ID, User ID, and content are required");
   }
 
+  if (content.trim().length > MAX_LENGTH) {
+    throw new Error(`Comment content exceeds the maximum length of ${MAX_LENGTH} characters`);
+  }
+
   try {
     const userClerk = await currentUser()
+
     if (!userClerk) {
       throw new Error("User not authenticated");
     }
+
     const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
     if (!user) {
       throw new Error("User not found");
     }
+
     const comment = await prisma.comment.create({
       data: {
         userId: user.id,
@@ -459,6 +471,8 @@ export const createComment = async ({
         content,
       },
     });
+
+    revalidatePath(`/posts/${postId}`);
 
     return comment;
   } catch (error) {

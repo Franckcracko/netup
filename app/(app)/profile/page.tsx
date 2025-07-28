@@ -1,6 +1,8 @@
-import { PostsSection } from "@/components/profile/posts-section"
+import LoadMore from "@/components/profile/load-more"
+import { Post } from "@/components/profile/post"
 import { ProfileSection } from "@/components/profile/profile-section"
-import { getUserStats } from "@/data/user"
+import { getPosts } from "@/data/post"
+import { getUserByEmail, getUserStats } from "@/data/user"
 import { auth, clerkClient } from "@clerk/nextjs/server"
 
 export default async function Profile() {
@@ -12,17 +14,29 @@ export default async function Profile() {
 
   const clerk = await clerkClient()
 
-  const user = await clerk.users.getUser(authObject.userId)
+  const userClerk = await clerk.users.getUser(authObject.userId)
+
+  if (!userClerk) {
+    throw new Error("User not found")
+  }
+
+  const email = userClerk.emailAddresses[0].emailAddress
+
+  const stats = await getUserStats(email)
+
+  if (!stats) {
+    throw new Error("User stats not found")
+  }
+
+  const user = await getUserByEmail(email)
 
   if (!user) {
     throw new Error("User not found")
   }
 
-  const stats = await getUserStats(user.emailAddresses[0].emailAddress)
+  const query = `@${user.username}`
 
-  if (!stats) {
-    throw new Error("User stats not found")
-  }
+  const { posts } = await getPosts({ query, page: 1 })
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -32,7 +46,16 @@ export default async function Profile() {
         reactionsCount={stats.reactionsCount}
       />
 
-      <PostsSection />
+      <section className="space-y-4 mt-5">
+        <h2 className="text-2xl font-bold text-white mb-4">Mis Posts</h2>
+        {posts.map((post) => (
+          <Post
+            key={post.id}
+            post={post}
+          />
+        ))}
+      </section>
+      <LoadMore query={query} />
     </div>
   )
 }

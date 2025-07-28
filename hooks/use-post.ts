@@ -82,32 +82,30 @@ export const usePost = () => {
     })
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handleSearchDebounce = useCallback(
-    debounce(async (query: string) => {
-      setIsLoadingData(true)
-      try {
+  const handleSearchDebounce = debounce(async (query: string) => {
+    setIsLoadingData(true)
+    try {
+      if (query.trim() === '') {
+        const postsData = await getPosts({ page: 1 })
+        setPosts(postsData.posts)
+        setHasNextPage(postsData.hasNext)
+        setCurrentPage(1)
+      } else {
         const postsData = await getPosts({ page: 1, query })
         setPosts(postsData.posts)
         setHasNextPage(postsData.hasNext)
         setCurrentPage(1)
-      } catch (error) {
-        console.error("Error fetching posts:", error)
-      } finally {
-        setIsLoadingData(false)
       }
-    }, 300),
-    []
-  )
+    } catch (error) {
+      console.error("Error fetching posts:", error)
+    } finally {
+      setIsLoadingData(false)
+    }
+  }, 600)
 
   const handleChangeQuery = async (query: string) => {
     setSearchQuery(query)
-
-    if (query.trim() !== '') {
-      handleSearchDebounce(query)
-    } else {
-      await fetchPosts(1)
-    }
+    handleSearchDebounce(query)
   }
 
   const handleDeletePost = async (postId: string) => {
@@ -144,7 +142,7 @@ export const usePost = () => {
     (async () => {
       if (subscribed) {
         try {
-          const postsData = await getPosts({ page:1 })
+          const postsData = await getPosts({ page: 1 })
           setPosts(postsData.posts)
           setHasNextPage(postsData.hasNext)
         } catch (error) {
