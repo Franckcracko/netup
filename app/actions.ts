@@ -178,8 +178,8 @@ export const createPost = async (formData: FormData): Promise<Post> => {
   const content = formData.get('content') as string;
   const image = formData.get('image') as File | undefined;
 
-  if (!content) {
-    throw new Error("Title and content are required");
+  if (!content && !image) {
+    throw new Error("Content or image is required to create a post");
   }
 
   const userClerk = await currentUser()
