@@ -29,34 +29,38 @@ export const SignUpForm = () => {
   if (verifying) {
     return (
       <>
-        <h1>Verifica tu correo</h1>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault()
-            setIsLoading(true)
-            try {
-              await handleVerify({ code })
-            } catch {
-              toast.error("Error al verificar el código. Inténtalo de nuevo.")
-            } finally {
-              setIsLoading(false)
-            }
-          }}
-          className="flex flex-col"
-        >
-          <div className="mb-4">
-            <Label id="code" className="mb-2">
-              Código de verificación
-            </Label>
-            <Input value={code} id="code" name="code" onChange={(e) => setCode(e.target.value)} className="mb-1" />
-            <p className="text-sm text-gray-400">
-              Revisa tu correo electrónico para obtener el código de verificación.
-            </p>
-          </div>
-          <Button type="submit">
-            {isLoading ? "Verificando..." : "Verificar Código"}
-          </Button>
-        </form>
+        <CardHeader className="my-6">
+          <CardTitle className="text-white">Verifica tu correo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              setIsLoading(true)
+              try {
+                await handleVerify({ code })
+              } catch {
+                toast.error("Error al verificar el código. Inténtalo de nuevo.")
+              } finally {
+                setIsLoading(false)
+              }
+            }}
+            className="flex flex-col"
+          >
+            <div className="mb-4">
+              <Label id="code" className="mb-2">
+                Código de verificación
+              </Label>
+              <Input value={code} id="code" name="code" onChange={(e) => setCode(e.target.value)} className="mb-1" />
+              <p className="text-sm text-gray-400">
+                Revisa tu correo electrónico para obtener el código de verificación.
+              </p>
+            </div>
+            <Button type="submit">
+              {isLoading ? "Verificando..." : "Verificar Código"}
+            </Button>
+          </form>
+        </CardContent>
       </>
     )
   }

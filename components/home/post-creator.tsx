@@ -1,6 +1,6 @@
 'use client';
 
-import { ImageIcon, Loader, Send } from "lucide-react"
+import { ImageIcon, Loader, Send, X } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
@@ -70,7 +70,7 @@ export const PostCreator = () => {
   return (
     <section className="mb-4 sm:mb-6">
       <div className="flex gap-2 sm:gap-3">
-        <Avatar className="size-12 flex-shrink-0">
+        <Avatar className="size-10 md:size-12 flex-shrink-0">
           <AvatarImage src={user?.avatar || "/placeholder.svg"} />
           <AvatarFallback className="bg-purple-600 text-white text-xs sm:text-sm">
             {user?.fullName
@@ -93,24 +93,43 @@ export const PostCreator = () => {
               <img
                 src={URL.createObjectURL(image)}
                 alt="Preview"
-                className="max-w-md object-fill rounded-sm"
+                className="w-full h-auto object-fill rounded-sm mt-2"
               />
             )
           }
           <div className="flex items-center justify-between mt-2 sm:mt-3">
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white p-1 sm:p-2"
-                onClick={() => {
-                  if (inputRef.current) {
-                    inputRef.current.click()
-                  }
-                }}
-              >
-                <ImageIcon className="w-4 h-4" />
-              </Button>
+              {
+                !image ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white p-1 sm:p-2"
+                    onClick={() => {
+                      if (inputRef.current) {
+                        inputRef.current.click()
+                      }
+                    }}
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-white p-1 sm:p-2"
+                    onClick={() => {
+                      setImage(null)
+                      if (inputRef.current) {
+                        inputRef.current.value = ""
+                      }
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="hidden sm:inline">Eliminar imagen</span>
+                  </Button>
+                )
+              }
               <input
                 type="file"
                 accept=".jpg,.jpeg,.png,.gif,.webp"
@@ -122,7 +141,7 @@ export const PostCreator = () => {
             </div>
             <Button
               onClick={handleCreatePost}
-              disabled={!newPost.trim()}
+              disabled={!newPost.trim() && !image}
               size="sm"
               className="bg-purple-600 hover:bg-purple-700 text-xs sm:text-sm px-3 sm:px-4 text-white"
             >

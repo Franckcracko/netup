@@ -71,8 +71,13 @@ export const PostFooter = ({
   const [openReactions, setOpenReactions] = useState(false)
 
   return (
-    <footer className="mt-6">
-      <PostReactions reactionsPost={reactionsPost} />
+    <footer className="mt-6 w-full">
+      <div className="flex items-center justify-between">
+        <PostReactions reactionsPost={reactionsPost} />
+        <Link href={`/posts/${post.id}`} className="text-gray-400 hover:border-b border-gray-400 text-sm ml-2">
+          {post.commentsCount && post.commentsCount > 0 ? `${post.commentsCount} comentario${post.commentsCount > 1 ? 's' : ''}` : 'Sin comentarios'}
+        </Link>
+      </div>
       <Separator className="mt-2" />
       <div className="pt-2 flex items-center justify-between">
         <Popover
