@@ -7,6 +7,8 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { useAuth } from "@/hooks/use-auth";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
 
 export const SignUpForm = () => {
   const { handleRegister, handleVerify } = useAuth()
@@ -22,7 +24,7 @@ export const SignUpForm = () => {
   const [verifying, setVerifying] = useState(false)
   const [code, setCode] = useState('')
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoading, setIsLoading] = useState(false)
 
   if (verifying) {
     return (
@@ -31,12 +33,29 @@ export const SignUpForm = () => {
         <form
           onSubmit={async (e) => {
             e.preventDefault()
-            await handleVerify({ code })
+            setIsLoading(true)
+            try {
+              await handleVerify({ code })
+            } catch {
+              toast.error("Error al verificar el código. Inténtalo de nuevo.")
+            } finally {
+              setIsLoading(false)
+            }
           }}
+          className="flex flex-col"
         >
-          <Label id="code">Enter your verification code</Label>
-          <Input value={code} id="code" name="code" onChange={(e) => setCode(e.target.value)} />
-          <Button type="submit">Verify</Button>
+          <div className="mb-4">
+            <Label id="code" className="mb-2">
+              Código de verificación
+            </Label>
+            <Input value={code} id="code" name="code" onChange={(e) => setCode(e.target.value)} className="mb-1" />
+            <p className="text-sm text-gray-400">
+              Revisa tu correo electrónico para obtener el código de verificación.
+            </p>
+          </div>
+          <Button type="submit">
+            {isLoading ? "Verificando..." : "Verificar Código"}
+          </Button>
         </form>
       </>
     )
@@ -51,6 +70,7 @@ export const SignUpForm = () => {
       <CardContent>
         <form onSubmit={async (e) => {
           e.preventDefault()
+          setIsLoading(true)
           try {
             await handleRegister({
               email: registerData.email,
@@ -58,10 +78,12 @@ export const SignUpForm = () => {
               username: registerData.username,
               password: registerData.password,
             })
+            setIsLoading(false)
             setVerifying(true)
           } catch (error) {
-            console.error("Error during registration:", error)
-            setErrors({ general: "Error al crear la cuenta. Inténtalo de nuevo." })
+            console.log(error)
+            toast.error("Error al crear la cuenta. Inténtalo de nuevo.")
+            setIsLoading(false)
           }
         }} className="space-y-4">
           <div className="space-y-2">
@@ -76,7 +98,6 @@ export const SignUpForm = () => {
               className="bg-[#1a1a1a] border-gray-600 text-white"
               placeholder="tu@email.com"
             />
-            {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
@@ -84,13 +105,13 @@ export const SignUpForm = () => {
               Nombre Completo
             </Label>
             <Input
+              required
               id="register-fullname"
               value={registerData.fullName}
               onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
               className="bg-[#1a1a1a] border-gray-600 text-white"
               placeholder="Juan Pérez"
             />
-            {errors.fullName && <p className="text-red-400 text-sm">{errors.fullName}</p>}
           </div>
 
           <div className="space-y-2">
@@ -98,13 +119,13 @@ export const SignUpForm = () => {
               Nombre de Usuario
             </Label>
             <Input
+              required
               id="register-username"
               value={registerData.username}
               onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
               className="bg-[#1a1a1a] border-gray-600 text-white"
               placeholder="juanperez123"
             />
-            {errors.username && <p className="text-red-400 text-sm">{errors.username}</p>}
           </div>
 
           <div className="space-y-2">
@@ -113,6 +134,7 @@ export const SignUpForm = () => {
             </Label>
             <div className="relative">
               <Input
+                required
                 id="register-password"
                 type={showPassword ? "text" : "password"}
                 value={registerData.password}
@@ -130,12 +152,22 @@ export const SignUpForm = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </Button>
             </div>
-            {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
           </div>
 
           <div id="clerk-captcha" />
 
-          <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
+          <p className="text-sm text-gray-400">
+            Al hacer clic en &quot;Crear Cuenta&quot;, aceptas nuestros{" "}
+            <Link href="/terms" className="text-purple-500 hover:underline">
+              Términos de Servicio
+            </Link>{" "}
+            y{" "}
+            <Link href="/privacy" className="text-purple-500 hover:underline">
+              Política de Privacidad
+            </Link>.
+          </p>
+
+          <Button type="submit" className="text-white w-full bg-purple-600 hover:bg-purple-700">
             Crear Cuenta
           </Button>
         </form>

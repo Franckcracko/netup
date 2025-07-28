@@ -7,13 +7,15 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 export const SignInForm = () => {
   const { handleLogin } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [loginData, setLoginData] = useState({ email: "", password: "", remember: false })
-  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const [isLoading, setIsLoading] = useState(false)
 
   return (
     <>
@@ -24,16 +26,19 @@ export const SignInForm = () => {
       <CardContent>
         <form onSubmit={async (e) => {
           e.preventDefault()
+          setIsLoading(true)
           try {
             const newErrors = await handleLogin(loginData)
 
             if (newErrors) {
-              setErrors(newErrors)
-              console.error("Login errors:", newErrors)
+              toast.error("Error al iniciar sesión. Por favor, revisa tus credenciales.")
+              console.log(newErrors)
             }
           } catch (error) {
-            console.error("Error during login:", error)
-            setErrors({ general: "Error al iniciar sesión. Inténtalo de nuevo." })
+            toast.error("Error al iniciar sesión. Inténtalo de nuevo más tarde.")
+            console.log(error)
+          } finally {
+            setIsLoading(false)
           }
         }} className="space-y-4">
           <div className="space-y-2">
@@ -48,7 +53,6 @@ export const SignInForm = () => {
               className="bg-[#1a1a1a] border-gray-600 text-white"
               placeholder="tu@email.com"
             />
-            {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
@@ -74,11 +78,12 @@ export const SignInForm = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </Button>
             </div>
-            {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
           </div>
 
           <Button type="submit" className="w-full text-white bg-purple-600 hover:bg-purple-700">
-            Iniciar Sesión
+            {
+            isLoading ? "Cargando..." : "Iniciar Sesión"
+            }
           </Button>
         </form>
       </CardContent>

@@ -29,3 +29,5 @@ export const reactions = [
   name: PostReactionType;
   emoji: string;
 }[]
+
+export const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB

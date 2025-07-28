@@ -7,9 +7,9 @@ import { prisma } from "@/lib/db";
 import { Post } from "@/types/post";
 import { currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { MAX_IMAGE_SIZE } from "@/config/constants";
 
 const ACCEPT_IMAGES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
-const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB
 
 /**
  * Create a new user

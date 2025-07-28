@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useState } from "react"
 import { deleteFriend } from "@/app/actions";
+import { toast } from "sonner";
 
 export const FriendItem = ({
   friend,
@@ -17,6 +18,8 @@ export const FriendItem = ({
   onDelete?: (friendId: string) => void;
 }) => {
   const [showDelete, setShowDelete] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
   return (
     <Card key={friend.id} className="bg-[#2d2d2d] border-gray-700">
       <CardContent className="p-4">
@@ -64,6 +67,7 @@ export const FriendItem = ({
           <form
             onSubmit={async (e) => {
               e.preventDefault();
+              setIsLoading(true);
 
               try {
                 await deleteFriend({ friendId: friend.id });
@@ -71,7 +75,10 @@ export const FriendItem = ({
                   onDelete(friend.id);
                 }
               } catch (error) {
-                console.error("Error al eliminar el post:", error);
+                toast.error("Error al eliminar el amigo. Inténtalo de nuevo más tarde.");
+                console.log(error);
+              } finally {
+                setIsLoading(false);
               }
               setShowDelete(false);
             }}
@@ -88,7 +95,9 @@ export const FriendItem = ({
               <DialogClose asChild>
                 <Button variant="outline">Cancelar</Button>
               </DialogClose>
-              <Button type="submit">Aceptar</Button>
+              <Button type="submit">
+                {isLoading ? "Eliminando..." : "Eliminar Amigo"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

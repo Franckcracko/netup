@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useState } from "react";
 import { deletePost } from "@/app/actions";
+import { toast } from "sonner";
 
 export const PostOptions = ({
   postId,
@@ -15,6 +16,7 @@ export const PostOptions = ({
   onDelete?: (postId: string) => void;
 }) => {
   const [showDelete, setShowDelete] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <>
@@ -61,7 +63,7 @@ export const PostOptions = ({
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-
+              setIsLoading(true);
               try {
                 await deletePost(postId);
 
@@ -69,7 +71,10 @@ export const PostOptions = ({
                   onDelete(postId);
                 }
               } catch (error) {
-                console.error("Error al eliminar el post:", error);
+                console.log(error);
+                toast.error("Error al eliminar el post. Inténtalo de nuevo más tarde.");
+              } finally {
+                setIsLoading(false);
               }
               setShowDelete(false);
             }}
@@ -86,13 +91,13 @@ export const PostOptions = ({
               <DialogClose asChild>
                 <Button variant="outline" >Cancelar</Button>
               </DialogClose>
-              <Button type="submit">Aceptar</Button>
+              <Button type="submit">
+                {isLoading ? "Eliminando..." : "Eliminar"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
-
       </Dialog>
-
     </>
   )
 }

@@ -3,11 +3,12 @@
 import { ImageIcon, Loader, Send } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button"
-import { Card, CardContent } from "../ui/card"
 import { Textarea } from "../ui/textarea"
 import { useState, useRef, ChangeEvent } from "react"
 import { useUser } from "@/hooks/use-user";
+import { MAX_IMAGE_SIZE } from "@/config/constants";
 import { createPost } from "@/app/actions";
+import { toast } from "sonner";
 
 export const PostCreator = () => {
   const { user } = useUser()
@@ -38,7 +39,8 @@ export const PostCreator = () => {
       setNewPost("")
       setImage(null)
     } catch (error) {
-      console.error("Error creating post:", error)
+      toast.error("Error al crear la publicación. Inténtalo de nuevo más tarde.")
+      console.log(error)
     } finally {
       setIsLoading(false)
     }
@@ -47,6 +49,12 @@ export const PostCreator = () => {
   const handleImage = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error("La imagen es demasiado grande. Máximo 1MB.")
+        setImage(null)
+        return
+      }
+
       setImage(file)
       const reader = new FileReader()
       reader.readAsDataURL(file)

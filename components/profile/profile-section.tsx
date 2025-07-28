@@ -4,6 +4,8 @@ import { createRequestFriend, rejectFriendRequest } from "@/app/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card"
+import { toast } from "sonner";
+import { useState } from "react";
 
 export const ProfileSection = ({
   user,
@@ -41,6 +43,7 @@ export const ProfileSection = ({
   friendsCount: number;
 }) => {
 
+  const [isLoading, setIsLoading] = useState(false)
   return (
     <Card className="bg-[#2d2d2d] border-gray-700 mb-4 sm:mb-6">
       <CardContent className="p-4 sm:p-6">
@@ -83,22 +86,40 @@ export const ProfileSection = ({
                               className="text-red-400 "
                               onClick={async () => {
                                 if (request) {
-                                  await rejectFriendRequest({ requestId: request.id });
+                                  try {
+                                    setIsLoading(true);
+                                    await rejectFriendRequest({ requestId: request.id });
+                                    toast.success("Solicitud de amistad rechazada");
+                                  } catch {
+                                    toast.error("Error al rechazar la solicitud de amistad");
+                                  } finally {
+                                    setIsLoading(false);
+                                  }
                                 }
                               }}
                             >
                               <span className="text-xs sm:text-sm">
-                                {request?.toUserId === user.id ? "Cancelar solicitud" : "Rechazar solicitud"}
+                                {isLoading ? 'Cargando...' : request?.toUserId === user.id ? "Cancelar solicitud" : "Rechazar solicitud"}
                               </span>
                             </Button>
                           ) : (
                             <Button
                               className="bg-blue-500 hover:bg-blue-600 text-white"
                               onClick={async () => {
-                                await createRequestFriend({ userId: user.id })
+                                try {
+                                  setIsLoading(true); await createRequestFriend({ userId: user.id })
+
+                                  toast.success("Solicitud de amistad enviada");
+                                } catch {
+                                  toast.error("Error al enviar la solicitud de amistad");
+                                } finally {
+                                  setIsLoading(false);
+                                }
                               }}
                             >
-                              <span className="text-xs sm:text-sm">Solicitar amistad</span>
+                              <span className="text-xs sm:text-sm">
+                                {isLoading ? 'Cargando...' : 'Enviar solicitud de amistad'}
+                              </span>
                             </Button>
                           )
                         }

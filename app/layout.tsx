@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,9 +17,38 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "NetUP - Red Social",
   description: "Conecta, comparte y descubre. La red social para todos.",
-  icons:{
-    icon: "/logo.png"
-  }
+  authors: [
+    {
+      name: "Franckracko",
+      url: "https://franckcracko.vercel.app/"
+    }
+  ],
+  keywords: [
+    "red social",
+    "conectar",
+    "compartir",
+    "descubrir",
+    "comunidad",
+    "interacción",
+    "contenido",
+    "usuarios"
+  ],
+  openGraph: {
+    title: "NetUP - Red Social",
+    description: "Conecta, comparte y descubre. La red social para todos.",
+    url: "https://netup.space",
+    siteName: "NetUP",
+    // images: [
+    //   {
+    //     url: "/og-image.png",
+    //     width: 1200,
+    //     height: 630,
+    //     alt: "NetUP - Red Social",
+    //   },
+    // ],
+    locale: "es_ES",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +63,7 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

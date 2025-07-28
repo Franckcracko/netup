@@ -38,17 +38,3 @@ export const Comment = ({ comment }: {
     </div>
   )
 }
-
-export const CommentSkeleton = () => {
-  return (
-    <div className="flex gap-3 animate-pulse">
-      <Avatar className="w-10 h-10 flex-shrink-0 bg-gray-700">
-        <AvatarFallback className="bg-gray-600 text-white">U</AvatarFallback>
-      </Avatar>
-      <div className="flex-1 space-y-2">
-        <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-        <div className="h-3 bg-gray-600 rounded w-full"></div>
-      </div>
-    </div>
-  )
-}

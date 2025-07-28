@@ -23,6 +23,7 @@ import {
 import { useUser } from "@/hooks/use-user"
 import { SignOutButton } from "@clerk/nextjs"
 import { EllipsisVertical, LogOut, User } from "lucide-react"
+import Link from "next/link"
 
 export function NavUser() {
   const { user } = useUser()
@@ -85,10 +86,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <User />
-                Cuenta
-              </DropdownMenuItem>
+              <Link href="/profile">
+                <DropdownMenuItem>
+                  <User />
+                  Cuenta
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <SignOutButton>

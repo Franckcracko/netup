@@ -7,6 +7,7 @@ import { createComment } from "@/app/actions";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/hooks/use-user";
+import { toast } from "sonner";
 
 export const CommentForm = ({
   postId
@@ -30,7 +31,8 @@ export const CommentForm = ({
       })
       setContent(""); // Clear the input after submission
     } catch (error) {
-      console.error(error)
+      toast.error("Error al crear el comentario. Inténtalo de nuevo más tarde.");
+      console.log(error)
     } finally {
       setIsLoading(false);
     }

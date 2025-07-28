@@ -17,6 +17,7 @@ import { Badge } from "../ui/badge"
 import { useState } from "react";
 import { reactToPost } from "@/app/actions";
 import { PostReactionType } from "@/data/post";
+import { toast } from "sonner";
 
 const getColor = (reaction: PostReactionType) => {
   switch (reaction) {
@@ -140,7 +141,8 @@ export const PostFooter = ({
                           type: name,
                         })
                       } catch (error) {
-                        console.error("Error reacting to post:", error);
+                        toast.error("Error al reaccionar al post. Inténtalo de nuevo más tarde.");
+                        console.log(error);
                       }
                     }}
                   >

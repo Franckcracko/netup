@@ -3,6 +3,7 @@
 import { createUser, verifyUsername } from "@/app/actions";
 import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation"
+import { toast } from "sonner";
 
 export const useAuth = () => {
   const router = useRouter()
@@ -129,6 +130,7 @@ export const useAuth = () => {
     const isUsernameAvailable = await verifyUsername(username)
 
     if (!isUsernameAvailable) {
+      toast.error("El nombre de usuario no está disponible")
       newErrors.username = "Nombre de usuario no disponible"
       return newErrors
     }

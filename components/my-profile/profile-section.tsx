@@ -7,7 +7,10 @@ import { Input } from "../ui/input"
 import { Textarea } from "../ui/textarea"
 import { useUser } from "@/hooks/use-user"
 import { ChangeEvent, useEffect, useRef, useState } from "react"
+import { MAX_IMAGE_SIZE } from "@/config/constants";
+
 import { updateUser, updateUserAvatar } from "@/app/actions"
+import { toast } from "sonner"
 
 export const ProfileSection = ({
   postsCount,
@@ -56,7 +59,8 @@ export const ProfileSection = ({
 
       setIsEditing(false)
     } catch (error) {
-      console.error("Error al actualizar el perfil:", error)
+      toast.error("Error al actualizar el perfil. Inténtalo de nuevo más tarde.")
+      console.log(error)
       setIsLoading(false)
 
       setEditData({
@@ -87,6 +91,14 @@ export const ProfileSection = ({
       setImage(file)
       const reader = new FileReader()
       reader.readAsDataURL(file)
+
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error("El archivo es demasiado grande. El tamaño máximo es 1MB.")
+        setIsLoadingImage(false)
+        setImage(null)
+        return
+      }
+
       try {
         const secureUrl = await updateUserAvatar({
           userId: user.id,
@@ -98,7 +110,8 @@ export const ProfileSection = ({
           avatar: secureUrl
         })
       } catch (error) {
-        console.error("Error al actualizar el avatar:", error)
+        toast.error("Error al actualizar el avatar. Inténtalo de nuevo más tarde.")
+        console.log(error)
       } finally {
         setIsLoadingImage(false)
         setImage(null)

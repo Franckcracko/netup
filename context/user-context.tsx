@@ -4,6 +4,7 @@ import { getUserByEmail } from "@/data/user";
 import { useUser } from "@clerk/nextjs";
 import { User } from "@prisma/client";
 import { createContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface UserContextType {
   user: User | null;
@@ -33,7 +34,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode; }) => {
           setUser(userData)
         }
       } catch (error) {
-        console.error("Error fetching user:", error)
+        toast.error("Error al obtener el usuario. Inténtalo de nuevo más tarde.")
+        console.log(error)
       }
     }
 
