@@ -28,25 +28,10 @@ model User {
 
   notifications Notification[]
 
-  following Follower[] @relation("UserFollowing")
-  follower Follower[] @relation("UserFollowers")
   Notification Notification[] @relation("FromUserNotifications")
   reactions    Reaction[]
 
   @@map("users")
-}
-
-model Follower {
-  id        String   @id @default(uuid())
-  userId    String
-  followerId String
-  createdAt DateTime @default(now())
-
-  user     User @relation("UserFollowers", fields: [userId], references: [id])
-  followers User @relation("UserFollowing", fields: [followerId], references: [id])
-
-  @@unique([userId, followerId]) // Prevent duplicate follows
-  @@map("followers")
 }
 
 model Post {
@@ -150,4 +135,5 @@ enum ReactionType {
   wow
   sad
   angry
+  disgusted
 }

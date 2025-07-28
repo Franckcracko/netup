@@ -24,6 +24,10 @@ export const reactions = [
   {
     name: "angry",
     emoji: "😡"
+  },
+  {
+    name: "disgusted",
+    emoji: "🤢"
   }
 ] as {
   name: PostReactionType;

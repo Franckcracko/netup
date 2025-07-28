@@ -24,7 +24,7 @@ interface Post {
   commentsCount: number;
 }
 
-export type PostReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
+export type PostReactionType = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry' | 'disgusted';
 
 /** 
   * @function getPosts - Retrieves a paginated list of posts with optional search query.
@@ -138,6 +138,7 @@ export const getPosts = async ({
           'love': { count: 0 },
           'sad': { count: 0 },
           'wow': { count: 0 },
+          disgusted: { count: 0 },
         } as Record<PostReactionType, { count: number }>,
       }
     }
@@ -151,6 +152,7 @@ export const getPosts = async ({
       'love': { count: 0 },
       'sad': { count: 0 },
       'wow': { count: 0 },
+      disgusted: { count: 0 },
     }
 
     post.reactions.forEach(reaction => {
@@ -274,6 +276,7 @@ export const getPostsByUser = async ({
           'love': { count: 0 },
           'sad': { count: 0 },
           'wow': { count: 0 },
+          'disgusted': { count: 0 },
         } as Record<PostReactionType, { count: number }>,
       }
     }
@@ -287,6 +290,7 @@ export const getPostsByUser = async ({
       'love': { count: 0 },
       'sad': { count: 0 },
       'wow': { count: 0 },
+      'disgusted': { count: 0 },
     }
 
     post.reactions.forEach(reaction => {
@@ -375,13 +379,6 @@ export const getPostsFollowing = async ({
         {
           id: user.id,
         },
-        {
-          follower: {
-            some: {
-              followerId: user.id,
-            }
-          }
-        }
       ]
     },
   }
@@ -438,6 +435,7 @@ export const getPostsFollowing = async ({
           'love': { count: 0 },
           'sad': { count: 0 },
           'wow': { count: 0 },
+          'disgusted': { count: 0 },
         } as Record<PostReactionType, { count: number }>,
       }
     }
@@ -451,6 +449,7 @@ export const getPostsFollowing = async ({
       'love': { count: 0 },
       'sad': { count: 0 },
       'wow': { count: 0 },
+      'disgusted': { count: 0 },
     }
 
     post.reactions.forEach(reaction => {
@@ -549,6 +548,7 @@ export const getPost = async (id: string): Promise<Post> => {
         'love': { count: 0 },
         'sad': { count: 0 },
         'wow': { count: 0 },
+        'disgusted': { count: 0 },
       } as Record<PostReactionType, { count: number }>,
     }
   }
@@ -562,6 +562,7 @@ export const getPost = async (id: string): Promise<Post> => {
     'love': { count: 0 },
     'sad': { count: 0 },
     'wow': { count: 0 },
+    'disgusted': { count: 0 },
   }
 
   post.reactions.forEach(reaction => {
@@ -727,6 +728,7 @@ export const getRecentAnnouncements = async ({
           'love': { count: 0 },
           'sad': { count: 0 },
           'wow': { count: 0 },
+          'disgusted': { count: 0 },
         } as Record<PostReactionType, { count: number }>,
       }
     }
@@ -738,6 +740,7 @@ export const getRecentAnnouncements = async ({
       'love': { count: 0 },
       'sad': { count: 0 },
       'wow': { count: 0 },
+      'disgusted': { count: 0 },
     }
 
     post.reactions.forEach(reaction => {
