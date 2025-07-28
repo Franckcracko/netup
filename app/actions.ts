@@ -248,6 +248,7 @@ export const createPost = async (formData: FormData): Promise<Post> => {
         'love': { count: 0 },
         'sad': { count: 0 },
         'wow': { count: 0 },
+        'disgusted': { count: 0 },
       }
     };
   } catch (error) {
@@ -314,7 +315,7 @@ export const reactToPost = async ({
   type,
 }: {
   postId: string,
-  type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+  type: PostReactionType
 }): Promise<{
   id: string;
   postId: string;

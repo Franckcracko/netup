@@ -33,6 +33,8 @@ const getColor = (reaction: PostReactionType) => {
       return 'text-blue-500 hover:text-blue-600';
     case 'angry':
       return 'text-red-500 hover:text-red-600';
+    case 'disgusted':
+      return 'text-green-500 hover:text-green-600';
     default:
       return 'text-gray-400 hover:text-gray-400';
   }
@@ -52,6 +54,8 @@ const getTextReaction = (reaction: PostReactionType) => {
       return 'Me entristece';
     case 'angry':
       return 'Me enoja';
+    case 'disgusted':
+      return 'Me disgusta';
     default:
       return 'Reaccionar';
   }
@@ -65,7 +69,6 @@ export const PostFooter = ({
   const [reactionsPost, setReactionsPost] = useState(post.reactions)
   const [reacted, setReacted] = useState(post.reacted);
   const [openReactions, setOpenReactions] = useState(false)
-
 
   return (
     <footer className="mt-6">
