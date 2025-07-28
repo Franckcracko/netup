@@ -1,9 +1,9 @@
-import LoadMore from "@/components/my-profile/load-more"
-import { Post } from "@/components/my-profile/post"
+import { PostsSection } from "@/components/my-profile/posts-section"
+import { PostsSectionSkeleton } from "@/components/my-profile/posts-section-skeleton"
 import { ProfileSection } from "@/components/my-profile/profile-section"
-import { getPosts } from "@/data/post"
 import { getUserByEmail, getUserStats } from "@/data/user"
 import { auth, clerkClient } from "@clerk/nextjs/server"
+import { Suspense } from "react"
 
 export default async function Profile() {
   const authObject = await auth()
@@ -34,10 +34,6 @@ export default async function Profile() {
     throw new Error("User not found")
   }
 
-  const query = `@${user.username}`
-
-  const { posts } = await getPosts({ query, page: 1 })
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       <ProfileSection
@@ -46,16 +42,9 @@ export default async function Profile() {
         reactionsCount={stats.reactionsCount}
       />
 
-      <section className="space-y-4 mt-5">
-        <h2 className="text-2xl font-bold text-white mb-4">Mis Posts</h2>
-        {posts.map((post) => (
-          <Post
-            key={post.id}
-            post={post}
-          />
-        ))}
-      </section>
-      <LoadMore query={query} />
+      <Suspense fallback={<PostsSectionSkeleton />}>
+        <PostsSection username={user.username} />
+      </Suspense>
     </div>
   )
 }

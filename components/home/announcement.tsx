@@ -37,3 +37,23 @@ export const Announcement = ({ post }: { post: Post }) => {
     </article >
   )
 }
+
+export const AnnouncementSkeleton = () => {
+  return (
+    <article className="border-b animate-pulse">
+      <header className="flex mb-2 items-center">
+        <Avatar className="size-10 mr-3">
+          <AvatarFallback className="bg-gray-600 "></AvatarFallback>
+        </Avatar>
+        <div>
+          <h3 className="font-semibold text-white bg-gray-700 w-32 h-4 mb-1"></h3>
+          <p className="text-sm text-gray-400 bg-gray-700 w-24 h-3"></p>
+        </div>
+      </header>
+      <main className="mb-3">
+        <p className="text-white mb-3 bg-gray-700 w-full h-4"></p>
+        <div className="mb-3 rounded-lg overflow-hidden bg-gray-700 w-full h-64"></div>
+      </main>
+    </article>
+  )
+}

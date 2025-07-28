@@ -172,7 +172,7 @@ export const ProfileSection = ({
             </div>
 
             {/* Profile Info */}
-            <div className="flex-1 w-full text-center sm:text-left">
+            <div className="flex-1 w-full text-left">
               {!isEditing ? (
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-3">
@@ -209,7 +209,7 @@ export const ProfileSection = ({
                       </div>
                     )}
 
-                    <div className="flex justify-center sm:justify-start gap-4 sm:gap-6 pt-3 sm:pt-4">
+                    <div className="flex justify-between sm:justify-start gap-4 sm:gap-6 pt-3 sm:pt-4">
                       <div className="text-center">
                         <p className="text-lg sm:text-xl font-bold text-white">{postsCount}</p>
                         <p className="text-xs sm:text-sm text-gray-400">Posts</p>
