@@ -6,7 +6,7 @@ import { CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { toast } from "sonner";
 
 export const SignInForm = () => {
@@ -37,7 +37,6 @@ export const SignInForm = () => {
           } catch (error) {
             toast.error("Error al iniciar sesión. Inténtalo de nuevo más tarde.")
             console.log(error)
-          } finally {
             setIsLoading(false)
           }
         }} className="space-y-4">
@@ -82,7 +81,7 @@ export const SignInForm = () => {
 
           <Button type="submit" className="w-full text-white bg-purple-600 hover:bg-purple-700">
             {
-            isLoading ? "Cargando..." : "Iniciar Sesión"
+            isLoading ? <Loader className="size-6 animate-spin" /> : "Iniciar Sesión"
             }
           </Button>
         </form>

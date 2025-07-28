@@ -6,7 +6,7 @@ import { CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { useAuth } from "@/hooks/use-auth";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -172,7 +172,7 @@ export const SignUpForm = () => {
           </p>
 
           <Button type="submit" className="text-white w-full bg-purple-600 hover:bg-purple-700">
-            Crear Cuenta
+            {isLoading ? <Loader className="size-6 animate-spin" /> : "Crear Cuenta"}
           </Button>
         </form>
       </CardContent>
