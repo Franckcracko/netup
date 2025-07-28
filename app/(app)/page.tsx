@@ -12,7 +12,7 @@ export default async function FeedScreen() {
   const { posts: advertisements } = await getRecentAnnouncements({ page: 1 })
 
   return (
-    <main className="flex max-w-6xl 2xl:mx-auto">
+    <main className="flex max-w-6xl 2xl:mx-auto min-h-screen">
       <section className="px-4 py-6 flex-1">
         <PostCreator />
 

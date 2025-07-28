@@ -480,3 +480,196 @@ export const createComment = async ({
     throw new Error("Failed to create comment");
   }
 }
+
+export const createRequestFriend = async ({
+  userId
+}: {
+  userId: string;
+}) => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Check if the user is trying to send a friend request to themselves
+    if (user.id === userId) {
+      throw new Error("You cannot send a friend request to yourself");
+    }
+
+    const existingRequest = await prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { fromUserId: user.id, toUserId: userId },
+          { fromUserId: userId, toUserId: user.id },
+        ],
+        status: 'pending',
+      },
+    });
+
+    if (existingRequest) {
+      throw new Error("Friend request already sent");
+    }
+
+    const friendRequest = await prisma.friendRequest.create({
+      data: {
+        fromUserId: user.id,
+        toUserId: userId,
+        status: 'pending',
+      },
+    });
+
+    revalidatePath('/friends');
+    revalidatePath(`/profile/${userId}`)
+
+    return friendRequest;
+  } catch (error) {
+    console.error("Error creating friend request:", error);
+    throw new Error("Failed to create friend request");
+  }
+}
+
+export const acceptFriendRequest = async ({
+  requestId
+}: {
+  requestId: string;
+}) => {
+  if (!requestId) {
+    throw new Error("Request ID is required");
+  }
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const friendRequest = await prisma.friendRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!friendRequest || friendRequest.toUserId !== user.id) {
+      throw new Error("Friend request not found or you are not the recipient");
+    }
+
+    const updatedRequest = await prisma.friendRequest.update({
+      where: { id: requestId },
+      data: { status: 'accepted' },
+    });
+
+    revalidatePath('/friends');
+    revalidatePath(`/profile/${friendRequest.fromUserId}`)
+
+    return updatedRequest;
+  } catch (error) {
+    console.error("Error accepting friend request:", error);
+    throw new Error("Failed to accept friend request");
+  }
+}
+
+export const rejectFriendRequest = async ({
+  requestId
+}: {
+  requestId: string;
+}) => {
+  if (!requestId) {
+    throw new Error("Request ID is required");
+  }
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const friendRequest = await prisma.friendRequest.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!friendRequest) {
+      throw new Error("Friend request not found or you are not the recipient");
+    }
+
+    const updatedRequest = await prisma.friendRequest.update({
+      where: { id: requestId },
+      data: { status: 'rejected' },
+    });
+
+    revalidatePath('/friends');
+    revalidatePath(`/profile/${friendRequest.fromUserId}`)
+
+    return updatedRequest;
+  } catch (error) {
+    console.error("Error rejecting friend request:", error);
+    throw new Error("Failed to reject friend request");
+  }
+}
+
+export const deleteFriend = async ({
+  friendId
+}: {
+  friendId: string;
+}) => {
+  if (!friendId) {
+    throw new Error("User ID is required");
+  }
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const friendRequest = await prisma.friendRequest.findFirst({
+      where: {
+        id: friendId,
+        status: 'accepted',
+      },
+    });
+
+    if (!friendRequest) {
+      throw new Error("No friendship found");
+    }
+
+    await prisma.friendRequest.delete({
+      where: { id: friendRequest.id },
+    });
+
+    revalidatePath('/friends');
+  } catch (error) {
+    console.error("Error deleting friend:", error);
+    throw new Error("Failed to delete friend");
+  }
+}

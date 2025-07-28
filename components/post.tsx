@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { formatTimeAgo } from "@/utils/format-time"
 import { PostOptions } from "./home/post-options"
 import { PostFooter } from "./home/post-footer"
+import Link from "next/link"
 
 export const Post = ({
   post,
@@ -26,12 +27,12 @@ export const Post = ({
           </Avatar>
           <div className="flex-1">
             <header className="flex items-center justify-between mb-2">
-              <div>
+              <Link href={`/profile/${post.author.id}`}>
                 <h3 className="font-semibold text-white">{post.author.fullName}</h3>
                 <p className="text-sm text-gray-400">
                   @{post.author.username} · {formatTimeAgo(post.createdAt)}
                 </p>
-              </div>
+              </Link>
               <PostOptions
                 postId={post.id}
                 onDelete={onDelete}

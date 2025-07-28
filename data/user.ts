@@ -1,5 +1,6 @@
 'use server'
 import { prisma } from '@/lib/db'
+import { currentUser } from '@clerk/nextjs/server';
 
 export const getUserByEmail = async (email: string) => {
   return prisma.user.findUnique({
@@ -7,6 +8,44 @@ export const getUserByEmail = async (email: string) => {
       email,
     },
   })
+}
+
+export const getUser = async (id: string) => {
+  const userClerk = await currentUser()
+
+  if (!userClerk) {
+    throw new Error('User not authenticated');
+  }
+
+  const user = await getUserByEmail(userClerk.emailAddresses[0].emailAddress);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const userFind = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  })
+
+  const friend = await prisma.friendRequest.findFirst({
+    where: {
+      OR: [
+        { fromUserId: user.id },
+        { toUserId: user.id },
+      ],
+      status: { in: ['accepted', 'pending'] },
+    },
+  })
+  
+  return {
+    user: userFind,
+    isMyProfile: user.id === id,
+    isFriend: friend?.status === 'accepted',
+    isRequested: friend && friend.status === 'pending',
+    request: friend
+  }
 }
 
 export const getUserStats = async (email: string) => {
