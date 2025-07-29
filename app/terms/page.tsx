@@ -119,7 +119,7 @@ export default async function TermsScreen() {
           Estos Términos y Condiciones entran en vigencia a partir del 28 de julio de 2025.
         </p>
         <p className="mt-2 text-gray-500 text-sm">
-          © 2025 NetUp. Todos los derechos reservados.
+          © 2025 NetUP. Todos los derechos reservados.
         </p>
       </footer>
     </main>

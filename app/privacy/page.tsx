@@ -8,7 +8,7 @@ export default async function TermsScreen() {
     <main className="max-w-4xl py-6 px-4 mx-auto min-h-screen">
       <header>
         <h1 className="text-3xl font-semibold text-white mb-4">
-          📜 Términos y Condiciones de Uso - NetUp
+          📄 Política de Privacidad - NetUp
         </h1>
         <h2 className="text-lg font-semibold mb-2">
           Última actualización:{" "}
@@ -118,7 +118,7 @@ export default async function TermsScreen() {
           Estos Términos y Condiciones entran en vigencia a partir del 28 de julio de 2025.
         </p>
         <p className="mt-2 text-gray-500 text-sm">
-          © 2025 NetUp. Todos los derechos reservados.
+          © 2025 NetUP. Todos los derechos reservados.
         </p>
       </footer>
     </main>
