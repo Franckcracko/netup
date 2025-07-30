@@ -56,7 +56,6 @@ export const ProfileAvatar = ({
         toast.error("Error al actualizar el avatar. Inténtalo de nuevo más tarde.")
         console.log(error)
       } finally {
-        setImage(null)
         setIsLoadingImage(false)
       }
     } else {

@@ -16,6 +16,8 @@ export const BackgroundAvatar = ({
 
   const [isLoadingImage, setIsLoadingImage] = useState(false)
 
+  const [image, setImage] = useState<File | null>(null)
+
   const handleImage = async (event: ChangeEvent<HTMLInputElement>) => {
     if (!oldUser) {
       toast.error("No user data available.")
@@ -39,6 +41,10 @@ export const BackgroundAvatar = ({
       return
     }
 
+    reader.onloadend = () => {
+      setImage(file)
+    }
+
     try {
       const secureUrl = await updateBackgroundImage({
         userId: user.id,
@@ -50,7 +56,7 @@ export const BackgroundAvatar = ({
         backgroundImage: secureUrl
       })
     } catch (error) {
-      toast.error("Error al actualizar el avatar. Inténtalo de nuevo más tarde.")
+      toast.error("Error al actualizar el fondo. Inténtalo de nuevo más tarde.")
       console.log(error)
     } finally {
       setIsLoadingImage(false)
@@ -66,6 +72,8 @@ export const BackgroundAvatar = ({
         {
           isLoadingImage ? (
             <div className="w-full h-full bg-gray-700 animate-pulse" />
+          ) : image ? (
+            <img src={image} alt="background-profile" className="w-full object-cover h-full" />
           ) : user.backgroundImage ? (
             <img src={user.backgroundImage} alt="background-profile" className="w-full object-cover h-full" />
           ) : (
