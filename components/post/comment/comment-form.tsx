@@ -1,6 +1,5 @@
 'use client'
 import { FormEvent, useState } from "react";
-import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import { Loader, Send } from "lucide-react";
 import { createComment } from "@/app/actions";

@@ -3,9 +3,9 @@
 import { createRequestFriend, rejectFriendRequest } from "@/app/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card"
 import { toast } from "sonner";
 import { useState } from "react";
+import { User } from "@/types/user";
 
 export const ProfileSection = ({
   user,
@@ -14,7 +14,8 @@ export const ProfileSection = ({
   isMyProfile,
   isRequested,
   postsCount,
-  friendsCount
+  friendsCount,
+  reactionsCount
 }: {
   isMyProfile: boolean;
   request: {
@@ -26,137 +27,118 @@ export const ProfileSection = ({
   } | null;
   isFriend: boolean;
   isRequested: boolean | null;
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    fullName: string;
-    avatar: string | null;
-    avatarPublicId: string | null;
-    bio: string | null;
-    joinDate: Date;
-    friendsCount: number;
-    postsCount: number;
-  };
+  user: User;
   postsCount: number;
   reactionsCount: number;
   friendsCount: number;
 }) => {
-
   const [isLoading, setIsLoading] = useState(false)
+
   return (
-    <Card className="bg-[#2d2d2d] border-gray-700 mb-4 sm:mb-6">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:gap-6">
-          {/* Avatar Section - Centrado en móvil */}
-          <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4 sm:gap-6">
-            <div className="relative flex-shrink-0">
-              <Avatar className="w-24 h-24 sm:w-32 sm:h-32 relative">
-                <AvatarImage src={user.avatar || ""} />
-                <AvatarFallback className="bg-purple-600 text-white text-xl sm:text-2xl">
-                  {user.fullName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-
-            {/* Profile Info */}
-            <section className="flex-1 w-full text-center sm:text-left">
-              <div>
-                <div className="flex justify-between mb-3 sm:mb-4">
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-white">{user.fullName}</h2>
-                    <p className="text-gray-400 text-sm sm:text-base">@{user.username}</p>
-                  </div>
-                  {
-                    !isMyProfile && (
-                      <>
-                        {
-                          isFriend ? (
-                            <Button
-                              className="bg-gray-600 hover:bg-gray-700 text-white"
-                            >
-                              <span className="text-xs sm:text-sm">Son amigos</span>
-                            </Button>
-                          ) : isRequested ? (
-                            <Button
-                              variant={'outline'}
-                              className="text-red-400 "
-                              onClick={async () => {
-                                if (request) {
-                                  try {
-                                    setIsLoading(true);
-                                    await rejectFriendRequest({ requestId: request.id });
-                                    toast.success("Solicitud de amistad rechazada");
-                                  } catch {
-                                    toast.error("Error al rechazar la solicitud de amistad");
-                                  } finally {
-                                    setIsLoading(false);
-                                  }
-                                }
-                              }}
-                            >
-                              <span className="text-xs sm:text-sm">
-                                {isLoading ? 'Cargando...' : request?.toUserId === user.id ? "Cancelar solicitud" : "Rechazar solicitud"}
-                              </span>
-                            </Button>
-                          ) : (
-                            <Button
-                              className="bg-blue-500 hover:bg-blue-600 text-white"
-                              onClick={async () => {
-                                try {
-                                  setIsLoading(true); await createRequestFriend({ userId: user.id })
-
-                                  toast.success("Solicitud de amistad enviada");
-                                } catch {
-                                  toast.error("Error al enviar la solicitud de amistad");
-                                } finally {
-                                  setIsLoading(false);
-                                }
-                              }}
-                            >
-                              <span className="text-xs sm:text-sm">
-                                {isLoading ? 'Cargando...' : 'Enviar solicitud de amistad'}
-                              </span>
-                            </Button>
-                          )
-                        }
-                      </>
-                    )
-                  }
-                </div>
-
-                <div className="space-y-2 sm:space-y-3">
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-400">Email</p>
-                    <p className="text-white text-sm sm:text-base break-all">{user.email}</p>
-                  </div>
-
-                  {user.bio && (
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-400">Biografía</p>
-                      <p className="text-white text-sm sm:text-base">{user.bio}</p>
-                    </div>
-                  )}
-
-                  <div className="flex justify-center sm:justify-start gap-4 sm:gap-6 pt-3 sm:pt-4">
-                    <div className="text-center">
-                      <p className="text-lg sm:text-xl font-bold text-white">{postsCount}</p>
-                      <p className="text-xs sm:text-sm text-gray-400">Posts</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg sm:text-xl font-bold text-white">{friendsCount}</p>
-                      <p className="text-xs sm:text-sm text-gray-400">Amigos</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+    <section className="bg-[#2d2d2d] border-gray-700 mb-4 sm:mb-6 rounded-lg overflow-hidden">
+      {
+        user.backgroundImage ? (
+          <img src={user.backgroundImage} alt="background-profile" className="w-full object-cover h-48" />
+        ) : (
+          <div className="w-full h-48 bg-gray-700 animate-pulse" />
+        )
+      }
+      <article className="px-6 pt-4 pb-6">
+        <header className="flex sm:flex-row flex-col max-sm:items-center gap-y-4">
+          <Avatar className="size-36 sm:size-40 relative -mt-20 border-8 border-[#2d2d2d]">
+            <AvatarImage src={user.avatar || ""} />
+            <AvatarFallback className="bg-purple-600 text-white text-xl sm:text-2xl">
+              {user.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 ml-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{user.fullName || user.fullName}</h1>
+            <p className="text-gray-400 text-sm"><strong>@{user.username || user.username}</strong>, {user.joinDate.toDateString() || user.joinDate.toDateString()}</p>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+          {
+            !isMyProfile && (
+              <>
+                {
+                  isFriend ? (
+                    <Button
+                      className="bg-gray-600 hover:bg-gray-700 text-white"
+                    >
+                      <span className="text-xs sm:text-sm">Son amigos</span>
+                    </Button>
+                  ) : isRequested ? (
+                    <Button
+                      variant={'outline'}
+                      className="text-red-400 "
+                      onClick={async () => {
+                        if (request) {
+                          try {
+                            setIsLoading(true);
+                            await rejectFriendRequest({ requestId: request.id });
+                            toast.success("Solicitud de amistad rechazada");
+                          } catch {
+                            toast.error("Error al rechazar la solicitud de amistad");
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm">
+                        {isLoading ? 'Cargando...' : request?.toUserId === user.id ? "Cancelar solicitud" : "Rechazar solicitud"}
+                      </span>
+                    </Button>
+                  ) : (
+                    <Button
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true); await createRequestFriend({ userId: user.id })
+
+                          toast.success("Solicitud de amistad enviada");
+                        } catch {
+                          toast.error("Error al enviar la solicitud de amistad");
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                    >
+                      <span className="text-xs sm:text-sm">
+                        {isLoading ? 'Cargando...' : 'Enviar solicitud'}
+                      </span>
+                    </Button>
+                  )
+                }
+              </>
+            )
+          }
+        </header>
+        <main className="flex gap-x-6">
+          <div className="flex-1">
+            <h2
+              className="text-xl font-semibold text-white mt-4 mb-1"
+            >
+              Sobre mí
+            </h2>
+            <p className="text-white leading-relaxed mb-4 max-w-md">
+              {user?.bio || user.bio || "No hay biografía disponible."}
+            </p>
+          </div>
+        </main>
+        <footer className="flex flex-wrap gap-y-2 gap-x-4 text-gray-200 text-sm mt-4">
+          <p>
+            Publicaciones {" "}<strong className="ml-1 text-white">{postsCount}</strong>
+          </p>
+          <p>
+            Reacciones {" "}<strong className="ml-1 text-white">{reactionsCount}</strong>
+          </p>
+          <p>
+            Amigos {" "}<strong className="ml-1 text-white">{friendsCount}</strong>
+          </p>
+        </footer>
+      </article>
+    </section>
   )
 }

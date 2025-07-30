@@ -99,6 +99,73 @@ export const updateUser = async ({
   }
 }
 
+export const updateBackgroundImage = async ({
+  backgroundImage,
+}: {
+  userId: string;
+  backgroundImage: File | undefined;
+}): Promise<string | null> => {
+  if (backgroundImage && !(backgroundImage instanceof File)) {
+    throw new Error("Background image must be a valid file");
+  }
+
+  try {
+    const userClerk = await currentUser()
+
+    if (!userClerk) {
+      throw new Error("User not authenticated");
+    }
+
+    const user = await getUserByEmail(userClerk.emailAddresses[0]?.emailAddress)
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let backgroundImageUrl = null;
+    let backgroundImagePublicId = null;
+
+    if (backgroundImage) {
+      // Validate the image type
+      if (!ACCEPT_IMAGES.includes(backgroundImage.type)) {
+        throw new Error("Invalid image type. Supported types are: jpeg, png, gif, webp, jpg");
+      }
+
+      // Validate the image size
+      if (backgroundImage.size > MAX_IMAGE_SIZE * 2) {
+        throw new Error("Image size exceeds the maximum limit of 2MB");
+      }
+
+      // If the user already has a background image, delete it from Cloudinary
+      if (user.backgroundImagePublicId) {
+        await deleteImageFromCloudinary({ publicId: user.backgroundImagePublicId });
+      }
+
+      const bufferImage = await backgroundImage.arrayBuffer();
+      const base64Image = Buffer.from(bufferImage).toString('base64');
+      const cloudinaryResponse = await sendImageToCloudinary({ image: base64Image });
+
+      if (cloudinaryResponse.secure_url) {
+        backgroundImageUrl = cloudinaryResponse.secure_url; // Store the URL of the uploaded image
+        backgroundImagePublicId = cloudinaryResponse.public_id; // Store the public ID for future reference
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        backgroundImage: backgroundImageUrl,
+        backgroundImagePublicId: backgroundImagePublicId,
+      },
+    });
+
+    return backgroundImageUrl;
+  } catch (error) {
+    console.error("Error updating user background image:", error);
+    throw new Error("Failed to update user background image");
+  }
+}
+
 export const updateUserAvatar = async ({
   avatar,
 }: {

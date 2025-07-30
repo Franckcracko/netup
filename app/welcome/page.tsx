@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Shield, MessageSquare, Heart, Zap, Globe, ArrowRight, Check,  X } from "lucide-react"
+import { Users, Shield, MessageSquare, Heart, Zap, Globe, ArrowRight, Check} from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
-export default function LandingPage() {
+export default function WelcomePage() {
   const features = [
     {
       icon: <Zap className="w-8 h-8 text-purple-400" />,
@@ -41,22 +41,15 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-white">
-      {/* Navigation */}
       <nav className="fixed top-0 w-full bg-[#1a1a1a]/95 backdrop-blur-sm border-b border-gray-800 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <div className="flex items-center gap-3">
               <Image src={'/logo.webp'} alt="logo netup" width={20} height={20} />
-
               <span className="text-xl font-bold">NetUP</span>
             </div>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              {/* <a href="#features" className="text-gray-300 hover:text-white transition-colors">
-                Características
-              </a> */}
               <Link href="/sign-in">
                 <Button
                   variant="outline"
@@ -71,7 +64,6 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
@@ -103,7 +95,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0f0f0f]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -130,7 +121,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Screenshots Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -193,7 +183,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">

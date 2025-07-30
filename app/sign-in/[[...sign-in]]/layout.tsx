@@ -19,7 +19,7 @@ export default function AuthLayout({
     if (isLoaded && isSignedIn) {
       router.replace(searchParams.get('redirect_url') || "/")
     }
-  }, [isLoaded, isSignedIn])
+  }, [isLoaded, isSignedIn, router, searchParams])
 
   return children;
 }
