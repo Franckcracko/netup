@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Home, Search, User, Users } from "lucide-react"
+import { Home, MapIcon, Search, User, Users } from "lucide-react"
 import Link from "next/link"
 
 const data = {
@@ -30,6 +30,11 @@ const data = {
       title: "Amigos",
       url: "/friends",
       icon: Users,
+    },
+    {
+      title: "Mapa",
+      url: "/map",
+      icon: MapIcon,
     },
     {
       title: "Perfil",
