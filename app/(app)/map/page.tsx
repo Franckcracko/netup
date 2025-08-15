@@ -43,15 +43,8 @@ export default function MapPage() {
 
   useEffect(() => {
     loadBusData()
-
-    const interval = setInterval(() => {
-      loadBusData()
-    }, 100000)
-
-    return () => clearInterval(interval)
   }, [])
   
-
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
       <header className="bg-[#2d2d2d] border-b border-gray-700 sticky top-0 z-50">
